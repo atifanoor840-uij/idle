@@ -105,6 +105,8 @@ export interface DBOrder {
   referralBalanceApplied?: number;
   /** Weekend Holding add-on bought at checkout (+20% fee). */
   weekendHoldingAddon?: boolean;
+  /** Overnight Holding add-on bought at checkout (+10% fee). */
+  overnightHoldingAddon?: boolean;
   /** Admin-set: pin this order's account(s) to the pre-2026-09 rulebook. */
   legacyRules?: boolean;
   paymentMethod: string;
@@ -172,6 +174,8 @@ export interface DBTradingAccount {
   graphLink: string;
   /** Weekend Holding add-on carried over from the order (+20% fee). */
   weekendHoldingAddon?: boolean;
+  /** Overnight Holding add-on carried over from the order (+10% fee). */
+  overnightHoldingAddon?: boolean;
   externalStatisticsId?: string;
   statisticsApiId?: string;
   statisticsPayload?: any;
@@ -421,6 +425,22 @@ async function loadAllUsers(): Promise<DBUser[]> {
 }
 
 // CRM Data Controller Functions accessing Supabase
+function mapOrderRow(o: any): DBOrder {
+  if (!o) return o;
+  return {
+    ...o,
+    overnightHoldingAddon: Boolean(o.overnightHoldingAddon || /addon:overnight=1/.test(o.gatewayRef || "")),
+  };
+}
+
+function mapAccountRow(a: any): DBTradingAccount {
+  if (!a) return a;
+  return {
+    ...a,
+    overnightHoldingAddon: Boolean(a.overnightHoldingAddon || a.statisticsPayload?.overnightHoldingAddon),
+  };
+}
+
 export const db = {
   // Users
   getUsers: (): Promise<DBUser[]> => shareInFlight("users", loadAllUsers),
@@ -479,7 +499,7 @@ export const db = {
   getOrdersByUserId: async (userId: string): Promise<DBOrder[]> => {
     const { data, error } = await supabase.from("orders").select("*").eq("userId", userId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapOrderRow);
   },
   /** Batched id lookup - see `getUsersByIds`. */
   getOrdersByIds: async (ids: string[]): Promise<DBOrder[]> => {
@@ -492,12 +512,19 @@ export const db = {
   getOrderById: async (id: string): Promise<DBOrder | undefined> => {
     const { data, error } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
     if (error) throw error;
-    return data || undefined;
+    return data ? mapOrderRow(data) : undefined;
   },
   saveOrder: async (order: DBOrder): Promise<DBOrder> => {
-    const { data, error } = await supabase.from("orders").upsert(order).select().single();
+    const { overnightHoldingAddon, ...dbPayload } = order as any;
+    if (overnightHoldingAddon) {
+      if (!dbPayload.gatewayRef) dbPayload.gatewayRef = "";
+      if (!dbPayload.gatewayRef.includes("addon:overnight=1")) {
+        dbPayload.gatewayRef = `${dbPayload.gatewayRef}|addon:overnight=1`;
+      }
+    }
+    const { data, error } = await supabase.from("orders").upsert(dbPayload).select().single();
     if (error) throw error;
-    return data;
+    return mapOrderRow({ ...data, overnightHoldingAddon });
   },
   deleteOrder: async (id: string): Promise<boolean> => {
     const { error, count } = await supabase.from("orders").delete({ count: "exact" }).eq("id", id);
@@ -623,22 +650,29 @@ export const db = {
   getAccounts: async (): Promise<DBTradingAccount[]> => {
     const { data, error } = await supabase.from("trading_accounts").select("*");
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapAccountRow);
   },
   getAccountsByUserId: async (userId: string): Promise<DBTradingAccount[]> => {
     const { data, error } = await supabase.from("trading_accounts").select("*").eq("userId", userId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapAccountRow);
   },
   getAccountById: async (id: string): Promise<DBTradingAccount | undefined> => {
     const { data, error } = await supabase.from("trading_accounts").select("*").eq("id", id).maybeSingle();
     if (error) throw error;
-    return data || undefined;
+    return data ? mapAccountRow(data) : undefined;
   },
   saveAccount: async (account: DBTradingAccount): Promise<DBTradingAccount> => {
-    const { data, error } = await supabase.from("trading_accounts").upsert(account).select().single();
+    const { overnightHoldingAddon, ...dbPayload } = account as any;
+    if (overnightHoldingAddon) {
+      dbPayload.statisticsPayload = {
+        ...(dbPayload.statisticsPayload || {}),
+        overnightHoldingAddon: true,
+      };
+    }
+    const { data, error } = await supabase.from("trading_accounts").upsert(dbPayload).select().single();
     if (error) throw error;
-    return data;
+    return mapAccountRow({ ...data, overnightHoldingAddon });
   },
   deleteAccount: async (id: string): Promise<boolean> => {
     const { error, count } = await supabase.from("trading_accounts").delete({ count: "exact" }).eq("id", id);

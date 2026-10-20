@@ -21,8 +21,8 @@ function certSvg(c: Certificate) {
 <rect width="800" height="560" rx="24" fill="#0b0d10"/>
 <rect x="18" y="18" width="764" height="524" rx="16" fill="none" stroke="#34E834" stroke-opacity=".35" stroke-width="2"/>
 <g opacity=".08" fill="#34E834">${Array.from({ length: 14 }, (_, i) => `<rect x="${500 + i * 20}" y="${420 - i * 18 - (i % 3) * 14}" width="10" height="${40 + i * 18}" rx="2"/>`).join("")}</g>
-<rect x="60" y="60" width="44" height="44" rx="10" fill="#34E834"/>
-<rect x="70" y="86" width="6" height="10" rx="2" fill="#000"/><rect x="79" y="79" width="6" height="17" rx="2" fill="#000"/><rect x="88" y="70" width="6" height="26" rx="2" fill="#000"/>
+<rect x="60" y="60" width="44" height="44" rx="10" fill="#000" stroke="#2efb0a" stroke-opacity=".35"/>
+<rect x="80.5" y="66" width="3" height="32" rx="1.5" fill="#2efb0a"/><rect x="75" y="72" width="14" height="20" rx="2" fill="#2efb0a"/>
 <text x="118" y="90" fill="#fff" font-size="22" font-weight="800" letter-spacing="2">${esc(site.wordmark)}</text>
 <text x="60" y="190" fill="#34E834" font-size="16" font-weight="700" letter-spacing="4">${label} CERTIFICATE</text>
 <text x="60" y="250" fill="#fff" font-size="44" font-weight="800">${esc(c.name)}</text>

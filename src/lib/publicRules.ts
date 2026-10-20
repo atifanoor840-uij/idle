@@ -18,6 +18,7 @@ import {
   TICK_SCALPING_TRADE_LIMIT,
   TICK_SCALPING_WINDOW_SECONDS,
   WEEKEND_HOLDING_ADDON_PERCENT,
+  OVERNIGHT_HOLDING_ADDON_PERCENT,
   type ChallengeRuleKey,
 } from "./rulebook";
 import { PAYOUT_PERIOD_DAYS, WITHDRAWAL_CAP_PERCENT } from "./payoutRules";
@@ -51,6 +52,7 @@ const common = [
   { k: "Time limit", v: `None (trade at least once every ${INACTIVITY_LIMIT_DAYS} days)` },
   { k: "Leverage", v: `Up to 1:${LEVERAGE_LIMIT}` },
   { k: "Weekend holding", v: `Optional add-on (+${WEEKEND_HOLDING_ADDON_PERCENT}%)` },
+  { k: "Overnight holding", v: `Optional add-on (+${OVERNIGHT_HOLDING_ADDON_PERCENT}%)` },
   { k: "Profit split", v: SPLIT_TEXT },
 ];
 
@@ -209,4 +211,4 @@ export const PAYOUT_TERMS = [
 ];
 
 export const SPLIT_SUMMARY = { first: SPLIT[0], max: SPLIT[SPLIT.length - 1], steps: SPLIT.length };
-export { LEVERAGE_LIMIT, PAYOUT_PERIOD_DAYS, WEEKEND_HOLDING_ADDON_PERCENT, WITHDRAWAL_CAP_PERCENT };
+export { LEVERAGE_LIMIT, PAYOUT_PERIOD_DAYS, WEEKEND_HOLDING_ADDON_PERCENT, OVERNIGHT_HOLDING_ADDON_PERCENT, WITHDRAWAL_CAP_PERCENT };

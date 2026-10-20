@@ -36,12 +36,15 @@ export default function Sidebar({
         aria-label="Sidebar"
       >
         <div className={cx("flex h-16 shrink-0 items-center gap-3 px-5", collapsed && "lg:justify-center lg:px-0")}>
-          <Link href={homeHref} className="flex items-center gap-2.5" aria-label={`${site.name} ${subtitle}`}>
-            <LogoMark className="size-9 shrink-0" />
-            <span className={cx("leading-tight", collapsed && "lg:hidden")}>
-              <span className="block text-[15px] font-extrabold tracking-wide text-ink">{site.wordmark}</span>
-              <span className="block text-[11px] font-medium text-muted">{subtitle}</span>
-            </span>
+          <Link href={homeHref} className="flex items-center gap-2.5 overflow-hidden" aria-label={`${site.name} ${subtitle}`}>
+            <div className={cx("items-center", collapsed ? "flex" : "hidden")}>
+              <img src="/logo-icon.png" alt={site.name} className="size-8 shrink-0 object-contain" />
+            </div>
+            <div className={cx("flex flex-col gap-0.5", collapsed && "lg:hidden")}>
+              <img src="/logo-dark.png" alt={site.name} className="h-7 w-auto max-w-[150px] object-contain dark:hidden" />
+              <img src="/logo.png" alt={site.name} className="hidden h-7 w-auto max-w-[150px] object-contain dark:block" />
+              <span className="text-[10px] font-semibold tracking-wider text-muted uppercase pl-0.5">{subtitle}</span>
+            </div>
           </Link>
           <button type="button" className={cx(iconBtn, "ml-auto lg:hidden")} aria-label="Close menu" onClick={onClose}>
             <X size={20} strokeWidth={1.75} />

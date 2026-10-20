@@ -326,9 +326,18 @@ export const LEGACY_PROFIT_CONSISTENCY_PERCENT = 30;
 // only unlocked by buying the Weekend Holding add-on at checkout, which adds this
 // percentage to the challenge fee.
 export const WEEKEND_HOLDING_ADDON_PERCENT = 20;
+export const OVERNIGHT_HOLDING_ADDON_PERCENT = 10;
+
+export function applyAddons(
+  basePrice: number,
+  addons: { weekendHolding?: boolean; overnightHolding?: boolean } = {}
+) {
+  let multiplier = 1;
+  if (addons.weekendHolding) multiplier += WEEKEND_HOLDING_ADDON_PERCENT / 100;
+  if (addons.overnightHolding) multiplier += OVERNIGHT_HOLDING_ADDON_PERCENT / 100;
+  return Number((basePrice * multiplier).toFixed(2));
+}
 
 export function applyWeekendHoldingAddon(basePrice: number, selected: boolean) {
-  return selected
-    ? Number((basePrice * (1 + WEEKEND_HOLDING_ADDON_PERCENT / 100)).toFixed(2))
-    : basePrice;
+  return applyAddons(basePrice, { weekendHolding: selected });
 }

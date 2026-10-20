@@ -208,6 +208,16 @@ export default function AccountDetailsView({ id }: { id: string }) {
               <h1 className="text-[22px] font-bold text-ink md:text-[24px]">{a.pendingDelivery ? "Account being prepared" : `#${a.login}`}</h1>
               <Tag>{a.phase}</Tag>
               <StatusBadge status={a.status} />
+              {a.raw.weekendHoldingAddon && (
+                <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-semibold text-brand-strong border border-brand/20">
+                  Weekend Holding
+                </span>
+              )}
+              {a.raw.overnightHoldingAddon && (
+                <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-semibold text-brand-strong border border-brand/20">
+                  Overnight Holding
+                </span>
+              )}
             </div>
             <p className="mt-1 text-[14px] text-muted">
               {a.program} · {money(a.size, 0)} · {a.platform}

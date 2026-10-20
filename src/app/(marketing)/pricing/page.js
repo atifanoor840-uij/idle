@@ -3,7 +3,7 @@ import Pricing from "@/components/Pricing";
 import { Checklist } from "@/components/ui";
 import { site } from "@/site.config";
 import { getPublicPricing } from "@/lib/publicPricing";
-import { SPLIT_SUMMARY, WEEKEND_HOLDING_ADDON_PERCENT } from "@/lib/publicRules";
+import { SPLIT_SUMMARY, WEEKEND_HOLDING_ADDON_PERCENT, OVERNIGHT_HOLDING_ADDON_PERCENT } from "@/lib/publicRules";
 
 export const metadata = {
   title: `Pricing — ${site.name}`,
@@ -18,6 +18,7 @@ const included = [
   "No time limit on evaluations",
   "News trading allowed during evaluations",
   `Optional weekend holding add-on (+${WEEKEND_HOLDING_ADDON_PERCENT}%)`,
+  `Optional overnight holding add-on (+${OVERNIGHT_HOLDING_ADDON_PERCENT}%)`,
   "MetaTrader 5, MetaTrader 4 or cTrader",
   "Real-time dashboard with every rule tracked",
 ];

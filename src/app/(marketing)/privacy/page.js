@@ -2,15 +2,23 @@ import PageShell, { LegalDoc, PageHero } from "@/components/PageShell";
 import { site } from "@/site.config";
 import { legalUpdated, privacy } from "@/content.config";
 
-export const metadata = { title: `Privacy Policy — ${site.name}` };
+export const metadata = {
+  title: `Privacy Policy — ${site.name}`,
+  description: `How ${site.name} collects, protects and manages your personal data and trading activity.`,
+};
 
 export default function PrivacyPage() {
   return (
     <PageShell>
-      <PageHero eyebrow="Legal" title="Privacy **Policy**" seed={4} />
+      <PageHero
+        eyebrow="Legal"
+        title="Privacy **Policy**"
+        sub="How we collect, protect, and handle your personal data in full compliance with international privacy standards."
+        seed={4}
+      />
       <LegalDoc
         updated={legalUpdated}
-        intro={`This policy explains what personal data ${site.company} collects, why, and the choices you have.`}
+        intro={`This policy explains what personal data ${site.company} collects, how it is processed and protected, and the legal choices you have under GDPR and applicable data protection regulations.`}
         sections={privacy}
       />
     </PageShell>

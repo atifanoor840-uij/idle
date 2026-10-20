@@ -8,9 +8,8 @@ export default function AuthShell({ title, sub, children, footer }: { title: str
     <main className="auth dark-band">
       <ChartBg seed={21} />
       <div className="auth-in">
-        <a href="/" className="logo auth-logo" aria-label={`${site.name} home`}>
-          <LogoMark />
-          <span className="logo-name">{site.wordmark}</span>
+        <a href="/" className="logo auth-logo justify-center mb-4" aria-label={`${site.name} home`}>
+          <img src="/logo.png" alt={site.name} className="h-10 w-auto object-contain" />
         </a>
         <section className="auth-card">
           <h1 className="auth-h">{title}</h1>

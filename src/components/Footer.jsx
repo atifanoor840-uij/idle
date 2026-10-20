@@ -11,9 +11,8 @@ export default function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div className="footer-brand">
-            <a href="/" className="logo">
-              <LogoMark />
-              <span className="logo-name">{site.wordmark}</span>
+            <a href="/" className="logo" aria-label={site.name}>
+              <img src="/logo.png" alt={site.name} className="logo-img" />
             </a>
             <p>{f.mission}</p>
             <div className="socials">

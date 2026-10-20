@@ -189,6 +189,7 @@ export default function PayView({ orderId, platform, returnState }: { orderId: s
             <KV k="Method" v={<span className="inline-flex items-center gap-1.5">{crypto ? <Wallet size={14} /> : <CreditCard size={14} />}{crypto ? "Crypto" : "Card"}</span>} />
             {order.couponUsed && <KV k="Code" v={order.couponUsed} />}
             {order.weekendHoldingAddon && <KV k="Weekend add-on" v="Included" />}
+            {order.overnightHoldingAddon && <KV k="Overnight add-on" v="Included" />}
             <div className="border-t border-line pt-2.5">
               <KV k={<span className="font-semibold text-ink">Total</span>} v={<span className="text-[20px]">{money(order.amountPaid)}</span>} />
             </div>

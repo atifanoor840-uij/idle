@@ -11,7 +11,7 @@ export type PlanModel = "One Step" | "Two Step" | "Instant";
 export type PricingPlan = { id: string; model: PlanModel; size: number; price: number; status: string };
 export type Order = {
   id: string; userId: string; planId: string; couponUsed: string; amountPaid: number;
-  referralBalanceApplied?: number; weekendHoldingAddon?: boolean; legacyRules?: boolean;
+  referralBalanceApplied?: number; weekendHoldingAddon?: boolean; overnightHoldingAddon?: boolean; legacyRules?: boolean;
   paymentMethod: string; status: string; gatewayRef: string; createdAt: string; updatedAt: string;
   planName?: string;
 };
@@ -20,7 +20,7 @@ export type TradingAccount = {
   passwordMaster: string; passwordInvestor: string; server: string; profitTarget: number;
   balance: number; equity: number; todayPl: number; totalPl: number;
   status: "Active" | "Passed" | "Failed" | "Funded"; phase?: string; graphLink: string;
-  weekendHoldingAddon?: boolean; statisticsPayload?: any; statisticsUpdatedAt?: string;
+  weekendHoldingAddon?: boolean; overnightHoldingAddon?: boolean; statisticsPayload?: any; statisticsUpdatedAt?: string;
   deliveryStatus: "pending" | "delivered"; deliveredAt?: string; createdAt: string;
   [computed: string]: unknown;
 };
@@ -88,7 +88,7 @@ export const api = {
   orders: {
     list: () => get<{ orders: Order[] }>("/api/orders"),
     /** 409 → ApiError with data.code === "PRICE_CHANGED" and data.amount */
-    create: (b: { planId: string; paymentMethod: string; couponUsed?: string; useReferralBalance?: boolean; weekendHoldingAddon?: boolean; expectedAmount?: number }) =>
+    create: (b: { planId: string; paymentMethod: string; couponUsed?: string; useReferralBalance?: boolean; weekendHoldingAddon?: boolean; overnightHoldingAddon?: boolean; expectedAmount?: number }) =>
       post<{ order: Order }>("/api/orders", b),
     pay: (orderId: string, platform: string) =>
       post<{ provider: string; checkoutUrl: string }>("/api/orders/pay", { orderId, platform, locale: "en" }),
@@ -124,7 +124,10 @@ export const api = {
 };
 
 /** Mirrors the server formula in POST /api/orders (no crypto discount). */
-export function checkoutTotal(price: number, opts: { weekendHoldingAddon?: boolean; discountPercent?: number } = {}) {
-  const base = price * (opts.weekendHoldingAddon ? 1.2 : 1);
+export function checkoutTotal(price: number, opts: { weekendHoldingAddon?: boolean; overnightHoldingAddon?: boolean; discountPercent?: number } = {}) {
+  let multiplier = 1;
+  if (opts.weekendHoldingAddon) multiplier += 0.20;
+  if (opts.overnightHoldingAddon) multiplier += 0.10;
+  const base = price * multiplier;
   return Math.ceil(base - base * ((opts.discountPercent || 0) / 100));
 }

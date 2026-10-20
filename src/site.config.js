@@ -29,6 +29,7 @@ export const site = {
   ],
   navMore: [
     { label: "Payout Policy", href: "/payout-policy" },
+    { label: "Refund Policy", href: "/refund-policy" },
     { label: "FAQ", href: "/faq" },
     { label: "Affiliates", href: "/affiliates" },
     { label: "About Us", href: "/about" },
@@ -163,12 +164,15 @@ export const site = {
         ],
       },
       {
-        title: "Resources",
+        title: "Resources & Legal",
         links: [
-          { label: "FAQ", href: "/faq" },
           { label: "Trading Rules", href: "/rules" },
           { label: "Payout Policy", href: "/payout-policy" },
+          { label: "Refund Policy", href: "/refund-policy" },
+          { label: "Terms of Service", href: "/terms" },
+          { label: "Privacy Policy", href: "/privacy" },
           { label: "Risk Disclosure", href: "/risk-disclosure" },
+          { label: "FAQ", href: "/faq" },
         ],
       },
     ],

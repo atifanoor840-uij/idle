@@ -17,7 +17,7 @@ import {
   getStageProfitTarget,
   planSupportsPhase,
 } from "@/lib/challengeStages";
-import { applyWeekendHoldingAddon } from "@/lib/rulebook";
+import { applyAddons, applyWeekendHoldingAddon } from "@/lib/rulebook";
 import { readSessionUserId } from "@/lib/session";
 
 async function getSessionUser() {
@@ -82,6 +82,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { planId, couponUsed, paymentMethod, useReferralBalance, expectedAmount } = body;
     const weekendHoldingAddon = Boolean(body.weekendHoldingAddon);
+    const overnightHoldingAddon = Boolean(body.overnightHoldingAddon);
 
     if (!planId) {
       return NextResponse.json({ error: "Plan ID is required." }, { status: 400 });
@@ -133,7 +134,7 @@ export async function POST(request: Request) {
     // the Buy page). challenge_plans holds a copy made on the first order and
     // goes stale once the admin edits the price.
     const catalogPrice = Number(catalogPlan.price);
-    let basePrice = applyWeekendHoldingAddon(catalogPrice, weekendHoldingAddon);
+    let basePrice = applyAddons(catalogPrice, { weekendHolding: weekendHoldingAddon, overnightHolding: overnightHoldingAddon });
     let discountPercent = 0;
     let isAffiliateRef = false;
     let affiliateUserId = "";
@@ -203,6 +204,7 @@ export async function POST(request: Request) {
       amountPaid: amountToPay,
       referralBalanceApplied: appliedReferralBalance,
       weekendHoldingAddon,
+      overnightHoldingAddon,
       paymentMethod: paymentMethod || "Credit Card",
       status: "Pending", // Pending until payment approved
       gatewayRef: "gway_" + Math.random().toString(36).substring(2, 10),

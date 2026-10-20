@@ -40,15 +40,7 @@ export function Nav() {
     <nav className="nav">
       <div className="container nav-in">
         <a href="/" className="logo" aria-label={site.name}>
-          <LogoMark />
-          <span>
-            <span className="logo-name">{site.wordmark}</span>
-            <span className="logo-tag">
-              {site.tagline[0]}
-              <br />
-              {site.tagline[1]}
-            </span>
-          </span>
+          <img src="/logo.png" alt={site.name} className="logo-img" />
         </a>
 
         {site.sponsorship && (

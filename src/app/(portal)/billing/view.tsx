@@ -28,7 +28,7 @@ function invoiceHtml(o: Order) {
 <h2>Invoice ${esc(o.id)}</h2>
 <p>Date: ${esc(fmtDate(o.createdAt))}<br>Status: ${esc(o.status)}<br>Payment method: ${esc(o.paymentMethod)}</p>
 <table style="width:100%;border-collapse:collapse"><tr style="background:#f5f5f5"><th align="left" style="padding:8px">Item</th><th align="right" style="padding:8px">Amount</th></tr>
-<tr><td style="padding:8px">${esc(product(o))}${o.weekendHoldingAddon ? " + weekend holding add-on" : ""}${o.couponUsed ? ` (code ${esc(o.couponUsed)})` : ""}</td><td align="right" style="padding:8px">${money(o.amountPaid)}</td></tr>
+<tr><td style="padding:8px">${esc(product(o))}${o.weekendHoldingAddon ? " + weekend holding add-on" : ""}${o.overnightHoldingAddon ? " + overnight holding add-on" : ""}${o.couponUsed ? ` (code ${esc(o.couponUsed)})` : ""}</td><td align="right" style="padding:8px">${money(o.amountPaid)}</td></tr>
 <tr><td style="padding:8px"><b>Total</b></td><td align="right" style="padding:8px"><b>${money(o.amountPaid)}</b></td></tr></table>
 <p style="color:#777;font-size:12px;margin-top:40px">${esc(site.company)}. Replace with your firm's registered address and tax details.</p></body>`;
 }

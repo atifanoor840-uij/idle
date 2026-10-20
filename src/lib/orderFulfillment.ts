@@ -191,6 +191,7 @@ export async function fulfillPaidOrder(order: DBOrder, user: DBUser, platform = 
     phase: isInstant ? "Funded (Live)" : "Phase 1 (Evaluation)",
     graphLink: "",
     weekendHoldingAddon: Boolean(order.weekendHoldingAddon),
+    overnightHoldingAddon: Boolean(order.overnightHoldingAddon),
     externalStatisticsId: "",
     statisticsApiId: "",
     deliveryStatus: "pending",

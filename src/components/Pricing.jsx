@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 import { Rich } from "./ui";
 
 const money = (n) => `$${Number(n).toLocaleString("en-US")}`;
@@ -10,6 +11,8 @@ const sizeLabel = (n) => (n >= 1_000_000 ? `$${n / 1_000_000}M` : `$${n / 1000}K
 export default function Pricing({ models, showHeader = false }) {
   const [mi, setMi] = useState(0);
   const [si, setSi] = useState(3);
+  const [weekendAddon, setWeekendAddon] = useState(false);
+  const [overnightAddon, setOvernightAddon] = useState(false);
 
   // Deep link: /pricing#1-step opens that model
   useEffect(() => {
@@ -34,6 +37,12 @@ export default function Pricing({ models, showHeader = false }) {
 
   const m = models[Math.min(mi, models.length - 1)];
   const s = m.sizes[Math.min(si, m.sizes.length - 1)];
+
+  const calcPrice = Math.round(
+    s.price * (1 + (weekendAddon ? 0.2 : 0) + (overnightAddon ? 0.1 : 0))
+  );
+
+  const checkoutLink = `/challenges?size=${s.size}&weekend=${weekendAddon ? 1 : 0}&overnight=${overnightAddon ? 1 : 0}`;
 
   return (
     <section className="section" id="plans">
@@ -83,9 +92,37 @@ export default function Pricing({ models, showHeader = false }) {
           <div className="card card-dark plan-price">
             <div className="world-dots" aria-hidden="true" />
             <span className="plan-price-lbl">One-time fee</span>
-            <div className="plan-price-num">{money(s.price)}</div>
-            <span className="plan-price-sub">No subscription · no hidden fees</span>
-            <a href="/challenges" className="btn btn-primary">
+            <div className="plan-price-num">{money(calcPrice)}</div>
+            <span className="plan-price-sub">
+              {weekendAddon || overnightAddon ? "Includes selected add-ons" : "No subscription · no hidden fees"}
+            </span>
+
+            {/* Customization Add-ons in Pricing Card */}
+            <div className="pricing-addons-box">
+              <span className="pricing-addons-title">Checkout Add-Ons</span>
+              <label className={`pricing-addon-toggle ${weekendAddon ? "active" : ""}`}>
+                <input
+                  type="checkbox"
+                  checked={weekendAddon}
+                  onChange={(e) => setWeekendAddon(e.target.checked)}
+                />
+                <span className="pricing-addon-label">
+                  <strong>Weekend Holding</strong> (+20%)
+                </span>
+              </label>
+              <label className={`pricing-addon-toggle ${overnightAddon ? "active" : ""}`}>
+                <input
+                  type="checkbox"
+                  checked={overnightAddon}
+                  onChange={(e) => setOvernightAddon(e.target.checked)}
+                />
+                <span className="pricing-addon-label">
+                  <strong>Overnight Holding</strong> (+10%)
+                </span>
+              </label>
+            </div>
+
+            <a href={checkoutLink} className="btn btn-primary">
               Start {sizeLabel(s.size)} Challenge
             </a>
             <a href="/rules" className="btn btn-outline">
