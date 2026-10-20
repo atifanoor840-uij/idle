@@ -19,7 +19,7 @@ export type TradingAccount = {
   id: string; userId: string; orderId: string; platform: string; login: string;
   passwordMaster: string; passwordInvestor: string; server: string; profitTarget: number;
   balance: number; equity: number; todayPl: number; totalPl: number;
-  status: "Active" | "Passed" | "Failed" | "Funded"; phase?: string; graphLink: string;
+  status: "Active" | "Passed" | "Failed" | "Funded"; phase?: string; graphLink: string; externalStatisticsId?: string;
   weekendHoldingAddon?: boolean; overnightHoldingAddon?: boolean; statisticsPayload?: any; statisticsUpdatedAt?: string;
   deliveryStatus: "pending" | "delivered"; deliveredAt?: string; createdAt: string;
   [computed: string]: unknown;

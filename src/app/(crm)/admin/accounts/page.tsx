@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { ExternalLink } from "lucide-react";
 import { money } from "@/lib/mock";
 import { crm, type AdminAccount, type InventoryItem } from "@/lib/crmApi";
 import type { Order } from "@/lib/propApi";
@@ -96,7 +97,7 @@ function DeliverModal({ account, inventory, onClose, onDone }: { account: Row | 
               <input className={inputCls} value={f.passwordInvestor} onChange={set("passwordInvestor")} autoComplete="off" />
             </Field>
             <Field label="Statistics (Graph) ID" hint="Needed for live stats and automatic rule checks.">
-              <input className={inputCls} value={f.externalStatisticsId} onChange={set("externalStatisticsId")} />
+              <input className={inputCls} value={f.externalStatisticsId} onChange={set("externalStatisticsId")} placeholder="e.g. smt_12345" />
             </Field>
             <Field label="Analytics link (optional)" className="sm:col-span-2">
               <input className={inputCls} type="url" value={f.graphLink} onChange={set("graphLink")} placeholder="https://" />
@@ -109,6 +110,183 @@ function DeliverModal({ account, inventory, onClose, onDone }: { account: Row | 
             </button>
             <button type="submit" disabled={busy} className={btnPrimary}>
               {busy ? "Delivering…" : "Deliver & email trader"}
+            </button>
+          </div>
+        </form>
+      )}
+    </Modal>
+  );
+}
+
+function EditAccountModal({
+  account,
+  onClose,
+  onDone,
+}: {
+  account: Row | null;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const [f, setF] = useState({
+    platform: "MT5",
+    server: "",
+    login: "",
+    passwordMaster: "",
+    passwordInvestor: "",
+    status: "Active" as AdminAccount["status"],
+    phase: "Phase 1 (Evaluation)",
+    balance: 100000,
+    equity: 100000,
+    todayPl: 0,
+    totalPl: 0,
+    profitTarget: 8000,
+    graphLink: "",
+    externalStatisticsId: "",
+  });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    if (!account) return;
+    setErr("");
+    setBusy(false);
+    setF({
+      platform: account.platform || "MT5",
+      server: account.server || "",
+      login: account.login || "",
+      passwordMaster: account.passwordMaster || "",
+      passwordInvestor: account.passwordInvestor || "",
+      status: account.status || "Active",
+      phase: account.phase || "Phase 1 (Evaluation)",
+      balance: Number(account.balance) || account.size || 100000,
+      equity: Number(account.equity) || Number(account.balance) || account.size || 100000,
+      todayPl: Number(account.todayPl) || 0,
+      totalPl: Number(account.totalPl) || 0,
+      profitTarget: Number(account.profitTarget) || 0,
+      graphLink: String(account.graphLink || ""),
+      externalStatisticsId: String(account.externalStatisticsId || ""),
+    });
+  }, [account]);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!account) return;
+    setBusy(true);
+    setErr("");
+    try {
+      await crm.accounts.save({
+        id: account.id,
+        platform: f.platform,
+        server: f.server.trim(),
+        login: f.login.trim(),
+        passwordMaster: f.passwordMaster,
+        passwordInvestor: f.passwordInvestor || undefined,
+        status: f.status,
+        phase: f.phase,
+        balance: Number(f.balance),
+        equity: Number(f.equity),
+        todayPl: Number(f.todayPl),
+        totalPl: Number(f.totalPl),
+        profitTarget: Number(f.profitTarget),
+        graphLink: f.graphLink.trim() || undefined,
+        externalStatisticsId: f.externalStatisticsId.trim() || undefined,
+      });
+      onDone();
+    } catch (e) {
+      setErr(errMsg(e));
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal open={!!account} title={`Edit Account · #${account?.login || account?.id}`} onClose={onClose} wide>
+      {account && (
+        <form onSubmit={submit} className="space-y-4">
+          <div className="rounded-tile bg-surface-2 p-3 text-[13px] text-muted flex flex-wrap justify-between gap-2 border border-line">
+            <span>Trader: <strong className="text-ink">{account.userName}</strong> ({account.userEmail})</span>
+            <span>Plan: <strong className="text-ink">{account.plan}</strong></span>
+            <span>Order ID: <strong className="text-ink">{account.orderId}</strong></span>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Platform">
+              <select className={inputCls} value={f.platform} onChange={(e) => setF({ ...f, platform: e.target.value })}>
+                {PLATFORMS.map((p) => (
+                  <option key={p}>{p}</option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Server">
+              <input className={inputCls} required value={f.server} onChange={(e) => setF({ ...f, server: e.target.value })} />
+            </Field>
+
+            <Field label="Login">
+              <input className={inputCls} required value={f.login} onChange={(e) => setF({ ...f, login: e.target.value })} autoComplete="off" />
+            </Field>
+
+            <Field label="Master Password">
+              <input className={inputCls} required value={f.passwordMaster} onChange={(e) => setF({ ...f, passwordMaster: e.target.value })} autoComplete="off" />
+            </Field>
+
+            <Field label="Investor Password (Optional)">
+              <input className={inputCls} value={f.passwordInvestor} onChange={(e) => setF({ ...f, passwordInvestor: e.target.value })} autoComplete="off" />
+            </Field>
+
+            <Field label="Status">
+              <select className={inputCls} value={f.status} onChange={(e) => setF({ ...f, status: e.target.value as AdminAccount["status"] })}>
+                <option value="Active">Active</option>
+                <option value="Passed">Passed</option>
+                <option value="Funded">Funded</option>
+                <option value="Failed">Failed (Breached)</option>
+              </select>
+            </Field>
+
+            <Field label="Phase">
+              <select className={inputCls} value={f.phase} onChange={(e) => setF({ ...f, phase: e.target.value })}>
+                <option value="Phase 1 (Evaluation)">Phase 1 (Evaluation)</option>
+                <option value="Phase 2 (Verification)">Phase 2 (Verification)</option>
+                <option value="Funded (Live)">Funded (Live)</option>
+              </select>
+            </Field>
+
+            <Field label="Profit Target ($)">
+              <input className={inputCls} type="number" step="any" value={f.profitTarget} onChange={(e) => setF({ ...f, profitTarget: Number(e.target.value) })} />
+            </Field>
+
+            <Field label="Current Balance ($)">
+              <input className={inputCls} type="number" step="any" required value={f.balance} onChange={(e) => setF({ ...f, balance: Number(e.target.value) })} />
+            </Field>
+
+            <Field label="Current Equity ($)">
+              <input className={inputCls} type="number" step="any" required value={f.equity} onChange={(e) => setF({ ...f, equity: Number(e.target.value) })} />
+            </Field>
+
+            <Field label="Today's P&L ($)">
+              <input className={inputCls} type="number" step="any" value={f.todayPl} onChange={(e) => setF({ ...f, todayPl: Number(e.target.value) })} />
+            </Field>
+
+            <Field label="Total P&L ($)">
+              <input className={inputCls} type="number" step="any" value={f.totalPl} onChange={(e) => setF({ ...f, totalPl: Number(e.target.value) })} />
+            </Field>
+
+            <Field label="Analytics / Graph Link (URL)" hint="Link opened when trader clicks 'Full analytics' on their balance curve chart." className="sm:col-span-2">
+              <input className={inputCls} type="url" value={f.graphLink} onChange={(e) => setF({ ...f, graphLink: e.target.value })} placeholder="https://www.tradingview.com/..." />
+            </Field>
+
+            <Field label="External Statistics ID" hint="ShowMyTrades or broker API ID for automated real-time equity curves and closed trades." className="sm:col-span-2">
+              <input className={inputCls} value={f.externalStatisticsId} onChange={(e) => setF({ ...f, externalStatisticsId: e.target.value })} placeholder="e.g. smt_12345" />
+            </Field>
+          </div>
+
+          {err && <FormMessage tone="error">{err}</FormMessage>}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className={btnSecondary}>
+              Cancel
+            </button>
+            <button type="submit" disabled={busy} className={btnPrimary}>
+              {busy ? "Saving…" : "Save Changes"}
             </button>
           </div>
         </form>
@@ -130,6 +308,7 @@ export default function AccountsDesk() {
   const [filter, setFilter] = useState<Filter>("deliver");
   const [q, setQ] = useState("");
   const [deliver, setDeliver] = useState<Row | null>(null);
+  const [edit, setEdit] = useState<Row | null>(null);
   const [statusFor, setStatusFor] = useState<{ acc: Row; status: AdminAccount["status"] } | null>(null);
   const [del, setDel] = useState<Row | null>(null);
   const [note, setNote] = useState<{ tone: "success" | "error"; text: string } | null>(null);
@@ -151,7 +330,7 @@ export default function AccountsDesk() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Accounts & Delivery" sub="Deliver login details, then manage each account's stage." />
+      <PageHeader title="Accounts & Delivery" sub="Deliver login details, then manage each account's stage and live stats." />
       <Card>
         <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <Tabs<Filter>
@@ -174,7 +353,7 @@ export default function AccountsDesk() {
         <LoadState loading={loading} error={error} onRetry={reload} />
         {!loading && !error && (
           <div className={tableWrap}>
-            <table className="w-full min-w-[1080px] border-collapse">
+            <table className="w-full min-w-[1100px] border-collapse">
               <thead className="bg-surface-2">
                 <tr>
                   <th className={thCls}>Trader</th>
@@ -183,7 +362,7 @@ export default function AccountsDesk() {
                   <th className={thCls}>Phase</th>
                   <th className={thCls}>Status</th>
                   <th className={cx(thCls, "text-right")}>Balance</th>
-                  <th className={thCls}>Stats</th>
+                  <th className={thCls}>Stats &amp; Graph</th>
                   <th className={thCls}>Action</th>
                 </tr>
               </thead>
@@ -215,23 +394,47 @@ export default function AccountsDesk() {
                       <td className={tdCls}>
                         <Badge>{pendingDelivery ? "Pending" : r.status === "Failed" ? "Breached" : r.status}</Badge>
                       </td>
-                      <td className={cx(tdCls, "text-right")}>{money(Number(r.balance) || 0)}</td>
-                      <td className={cx(tdCls, "text-[12.5px] text-muted")}>{r.statisticsUpdatedAt ? fmtDateTime(r.statisticsUpdatedAt) : "—"}</td>
+                      <td className={cx(tdCls, "text-right")}>
+                        <span className="font-semibold">{money(Number(r.balance) || 0)}</span>
+                        {Number(r.equity) && Number(r.equity) !== Number(r.balance) ? (
+                          <span className="block text-[11px] text-muted">Eq: {money(Number(r.equity))}</span>
+                        ) : null}
+                      </td>
+                      <td className={cx(tdCls, "text-[12.5px] text-muted")}>
+                        <div>{r.statisticsUpdatedAt ? fmtDateTime(r.statisticsUpdatedAt) : "—"}</div>
+                        {r.graphLink ? (
+                          <a
+                            href={r.graphLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-medium text-brand-strong hover:underline mt-0.5"
+                          >
+                            <ExternalLink size={12} /> Graph link
+                          </a>
+                        ) : null}
+                      </td>
                       <td className={tdCls}>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2.5">
                           {pendingDelivery ? (
-                            <button type="button" onClick={() => setDeliver(r)} className={cx(btnPrimary, "h-9")}>
+                            <button type="button" onClick={() => setDeliver(r)} className={cx(btnPrimary, "h-9 px-3.5")}>
                               Deliver
                             </button>
                           ) : (
                             <>
+                              <button
+                                type="button"
+                                onClick={() => setEdit(r)}
+                                className={cx(btnSecondary, "h-9 px-3 text-[13px] font-semibold")}
+                              >
+                                Edit
+                              </button>
                               <select
                                 aria-label={`Change status of ${r.login}`}
-                                className={cx(inputCls, "h-9 w-36 py-0 text-[13px]")}
+                                className={cx(inputCls, "h-9 w-32 py-0 text-[12.5px]")}
                                 value=""
                                 onChange={(e) => e.target.value && setStatusFor({ acc: r, status: e.target.value as AdminAccount["status"] })}
                               >
-                                <option value="">Set status…</option>
+                                <option value="">Status…</option>
                                 {(["Active", "Passed", "Failed", "Funded"] as const)
                                   .filter((s) => s !== r.status)
                                   .map((s) => (
@@ -273,6 +476,16 @@ export default function AccountsDesk() {
         onDone={() => {
           setNote({ tone: "success", text: "Credentials delivered and emailed to the trader." });
           setDeliver(null);
+          reload();
+        }}
+      />
+
+      <EditAccountModal
+        account={edit}
+        onClose={() => setEdit(null)}
+        onDone={() => {
+          setNote({ tone: "success", text: "Account details updated successfully." });
+          setEdit(null);
           reload();
         }}
       />

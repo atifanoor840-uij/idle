@@ -102,7 +102,7 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { id, platform, login, passwordMaster, passwordInvestor, server, profitTarget, graphLink, balance, equity, status, simulateObjectivePassed, externalStatisticsId, statisticsApiId, inventoryItemId } = body;
+    const { id, platform, login, passwordMaster, passwordInvestor, server, profitTarget, graphLink, balance, equity, status, simulateObjectivePassed, externalStatisticsId, statisticsApiId, inventoryItemId, todayPl, totalPl } = body;
 
     if (!id || !platform || !login || !passwordMaster || !server) {
       return NextResponse.json({ error: "Required fields: id, platform, login, passwordMaster, server." }, { status: 400 });
@@ -261,6 +261,8 @@ export async function PUT(request: Request) {
       if (graphLink !== undefined) account.graphLink = graphLink;
       if (balance !== undefined) account.balance = Number(balance);
       if (equity !== undefined) account.equity = Number(equity);
+      if (todayPl !== undefined) account.todayPl = Number(todayPl);
+      if (totalPl !== undefined) account.totalPl = Number(totalPl);
       if (body.phase !== undefined) account.phase = body.phase;
       if (externalStatisticsId !== undefined || statisticsApiId !== undefined) {
         account.externalStatisticsId = externalStatisticsId || statisticsApiId || "";

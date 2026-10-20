@@ -136,12 +136,12 @@ export default function AccountCard({ a }: { a: Account | UiAccount }) {
           <div className="flex flex-wrap items-center gap-1.5 sm:ml-2">
             <Tag>{a.phase}</Tag>
             <StatusBadge status={a.status} />
-            {(a.raw as any)?.weekendHoldingAddon && (
+            {Boolean("raw" in a ? a.raw?.weekendHoldingAddon : (a as any)?.weekendHoldingAddon) && (
               <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10.5px] font-semibold text-brand-strong border border-brand/20">
                 Weekend
               </span>
             )}
-            {(a.raw as any)?.overnightHoldingAddon && (
+            {Boolean("raw" in a ? a.raw?.overnightHoldingAddon : (a as any)?.overnightHoldingAddon) && (
               <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10.5px] font-semibold text-brand-strong border border-brand/20">
                 Overnight
               </span>

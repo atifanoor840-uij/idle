@@ -65,7 +65,8 @@ export const crm = {
     save: (b: {
       id: string; platform: string; login: string; passwordMaster: string; server: string; passwordInvestor?: string;
       graphLink?: string; externalStatisticsId?: string; inventoryItemId?: string; status?: TradingAccount["status"];
-      balance?: number; equity?: number; orderId?: string; userId?: string;
+      balance?: number; equity?: number; todayPl?: number; totalPl?: number; profitTarget?: number; phase?: string;
+      orderId?: string; userId?: string;
     }) => put<{ account: AdminAccount }>("/api/accounts", b),
     remove: (id: string) => del(`/api/accounts${q("id", id)}`),
     refreshStats: (accountId: string) => post<{ account: AdminAccount; error?: string }>("/api/accounts/refresh-stats", { accountId }),

@@ -71,7 +71,32 @@ export function buildPerformanceSeries(input: {
   const currentEquity = Number(input.currentEquity) || currentBalance;
   const rows = input.payload?.statistics?.equity_curve?.daily_performance;
 
-  if (!Array.isArray(rows) || rows.length === 0) return [];
+  if (!Array.isArray(rows) || rows.length === 0) {
+    if (initialBalance > 0) {
+      const today = new Date().toISOString().slice(0, 10);
+      return [
+        {
+          name: "Start",
+          date: "Start",
+          dailyProfit: 0,
+          cumulativeProfit: 0,
+          balance: initialBalance,
+          equity: initialBalance,
+          drawdown: 0,
+        },
+        {
+          name: "Today",
+          date: today,
+          dailyProfit: roundMoney(currentBalance - initialBalance),
+          cumulativeProfit: roundMoney(currentBalance - initialBalance),
+          balance: currentBalance,
+          equity: currentEquity,
+          drawdown: roundMoney(Math.max(0, initialBalance - currentBalance)),
+        },
+      ];
+    }
+    return [];
+  }
 
   const sortedRows = [...rows].sort((left, right) =>
     String(left?.date ?? "").localeCompare(String(right?.date ?? "")),
