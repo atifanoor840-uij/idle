@@ -35,20 +35,38 @@ export default function SigninForm({ next, notice, mode = "trader" }: { next: st
         </p>
       )}
       <label className="auth-field">
-        <span>Email</span>
-        <input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        <span>Email Address</span>
+        <input
+          type="email"
+          autoComplete="email"
+          required
+          placeholder="trader@idle4ex.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
       </label>
       <label className="auth-field">
         <span>Password</span>
         <span className="auth-pw">
-          <input type={show ? "text" : "password"} autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-          <button type="button" onClick={() => setShow((s) => !s)} aria-label={show ? "Hide password" : "Show password"}>
+          <input
+            type={show ? "text" : "password"}
+            autoComplete="current-password"
+            required
+            placeholder="••••••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => setShow((s) => !s)}
+            aria-label={show ? "Hide password" : "Show password"}
+          >
             {show ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </span>
       </label>
       <button type="submit" className="btn btn-primary auth-submit" disabled={busy}>
-        {busy ? "Signing in…" : "Sign in"}
+        {busy ? "Signing in…" : mode === "admin" ? "Access CRM Panel" : "Sign In to Dashboard"}
       </button>
     </form>
   );

@@ -31,8 +31,14 @@ export default function VerifyEmail({ status, email: initialEmail }: { status: s
       {state === "sent" && <p className="auth-msg ok" role="status">If an unverified account exists for this email, a new link is on its way.</p>}
       {state === "failed" && <p className="auth-msg err" role="alert">We couldn&apos;t send the email right now. Please try again shortly.</p>}
       <label className="auth-field">
-        <span>Email</span>
-        <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <span>Email Address</span>
+        <input
+          type="email"
+          autoComplete="email"
+          placeholder="your.email@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
       </label>
       <button type="button" onClick={resend} disabled={!email || state === "sending"} className="btn btn-outline auth-submit">
         {state === "sending" ? "Sending…" : "Resend verification email"}
