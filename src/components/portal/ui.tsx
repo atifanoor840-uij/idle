@@ -131,8 +131,15 @@ export function LoadState({ loading, error, onRetry, rows = 3 }: { loading: bool
   );
 }
 
-export function FormMessage({ tone, children }: { tone: "error" | "success" | "info"; children: ReactNode }) {
-  const cls = tone === "error" ? "bg-danger/10 text-danger" : tone === "success" ? "bg-success/12 text-success" : "bg-brand-soft text-ink";
+export function FormMessage({ tone, children }: { tone: "error" | "success" | "info" | "warning"; children: ReactNode }) {
+  const cls =
+    tone === "error"
+      ? "bg-danger/10 text-danger"
+      : tone === "success"
+        ? "bg-success/12 text-success"
+        : tone === "warning"
+          ? "border border-warning/40 bg-warning/12 text-ink"
+          : "bg-brand-soft text-ink";
   return (
     <p role={tone === "error" ? "alert" : "status"} className={cx("rounded-tile px-4 py-3 text-[14px]", cls)}>
       {children}

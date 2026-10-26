@@ -5,12 +5,17 @@ import { BadgeCheck, CalendarClock, CheckCircle2, Percent, Wallet } from "lucide
 import { money } from "@/lib/mock";
 import { api, ApiError, goToSignin } from "@/lib/propApi";
 import { fmtDate, toUiAccount, useApi } from "@/lib/portal-data";
-import { PAYOUT_PERIOD_DAYS } from "@/lib/payoutRules";
-import { PROFIT_SPLIT_BY_WITHDRAWAL } from "@/lib/rulebook";
+import { calculateMinimumWithdrawal, getFirstPayoutEligibleAt, PAYOUT_PERIOD_DAYS, WITHDRAWAL_CAP_PERCENT } from "@/lib/payoutRules";
+import {
+  FLEX_PROFIT_SPLIT_PERCENT,
+  FLEX_REDUCED_PROFIT_SPLIT_PERCENT,
+  getProfitSplitPercent,
+  PROFIT_SPLIT_BY_WITHDRAWAL,
+} from "@/lib/rulebook";
 import { btnPrimary, Card, cx, FormMessage, LoadState } from "@/components/portal/ui";
 import { Badge, Field, inputCls, NoticeStrip, PageHeader, tableWrap, tdCls, thCls, trCls } from "@/components/portal/kit";
 
-const MIN_PAYOUT = 100; // enforced by POST /api/payouts
+const ordinal = (n: number) => `${n}${["th", "st", "nd", "rd"][n % 100 >= 11 && n % 100 <= 13 ? 0 : n % 10] ?? "th"}`;
 const METHODS = [
   { id: "USDT (TRC20)", label: "Crypto · USDT (TRC20)" },
   { id: "Bank Transfer", label: "Bank transfer" },
@@ -36,16 +41,35 @@ export default function PayoutsView() {
   const [done, setDone] = useState<string>("");
 
   const kycOk = data?.kyc?.status === "approved";
+  const isFlex = account?.model === "Flex";
   const profit = account ? Math.max(0, account.balance - account.size) : 0;
-  const paidCount = (data?.payouts ?? []).filter((p) => p.accountId === account?.id && p.status === "paid").length;
-  const split = PROFIT_SPLIT_BY_WITHDRAWAL[Math.min(paidCount, PROFIT_SPLIT_BY_WITHDRAWAL.length - 1)];
-  const lastPayout = (data?.payouts ?? []).filter((p) => p.accountId === account?.id && p.status !== "rejected").map((p) => new Date(p.createdAt).getTime()).sort((a, b) => b - a)[0];
+  // Mirrors POST /api/payouts: the split steps up per clean paid withdrawal and a
+  // rejected one restarts it; Flex is a flat 85% (50% after a floating-cap hit).
+  const accountPayouts = (data?.payouts ?? []).filter((p) => p.accountId === account?.id).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const lastRejected = accountPayouts.map((p) => p.status).lastIndexOf("rejected");
+  const cleanPaid = accountPayouts.slice(lastRejected + 1).filter((p) => p.status === "paid").length;
+  const split = isFlex ? (account?.rules.flexReducedSplit ? FLEX_REDUCED_PROFIT_SPLIT_PERCENT : FLEX_PROFIT_SPLIT_PERCENT) : getProfitSplitPercent(cleanPaid);
+  const lastPayout = accountPayouts.filter((p) => p.status !== "rejected").map((p) => new Date(p.createdAt).getTime()).sort((a, b) => b - a)[0];
   const nextWindow = lastPayout ? new Date(lastPayout + PAYOUT_PERIOD_DAYS * 86400000) : null;
+  const minPayout = account ? calculateMinimumWithdrawal(account.size, isFlex) : 100;
+  const eligibleAt = account ? getFirstPayoutEligibleAt(account.raw.deliveredAt || account.raw.createdAt) : null;
+  const inProgress = accountPayouts.some((p) => p.status === "pending" || p.status === "approved" || p.status === "processing");
+  const checklist = account
+    ? [
+        { ok: !eligibleAt || eligibleAt.getTime() <= Date.now(), label: `${PAYOUT_PERIOD_DAYS} days since funded`, hint: eligibleAt && eligibleAt.getTime() > Date.now() ? `Opens ${fmtDate(eligibleAt.toISOString())}` : "" },
+        { ok: account.rules.winningDays >= account.rules.minDays, label: `${account.rules.minDays} ${isFlex ? "profitable" : "Winning"} Days this cycle`, hint: `${Math.min(account.rules.winningDays, account.rules.minDays)}/${account.rules.minDays}` },
+        { ok: profit - account.rules.newsProfitToDeduct >= minPayout, label: `Realized profit ≥ ${money(minPayout, 0)}`, hint: isFlex ? "" : "1% of the account size" },
+        { ok: !account.rules.checks.some((c) => c.id === "overnight-holding" && c.status === "warning"), label: "No overnight holding", hint: "" },
+        ...(isFlex ? [{ ok: !account.rules.checks.some((c) => c.id === "profit-consistency" && c.status === "warning"), label: "No day above 20% of profit", hint: "Consistency" }] : []),
+        { ok: kycOk, label: "KYC approved & Trader Agreement signed", hint: "" },
+        { ok: !inProgress, label: "No withdrawal already in progress", hint: "" },
+      ]
+    : [];
 
   const amt = Number(amount);
   const details = method === "Bank Transfer" ? bank : { address: address.trim() };
   const detailsOk = method === "Bank Transfer" ? bank.accountName.trim() && bank.bankName.trim() && bank.iban.trim().length >= 8 : address.trim().length >= 26;
-  const amountErr = amount && (!(amt > 0) ? "Enter an amount." : amt < MIN_PAYOUT ? `Minimum payout is ${money(MIN_PAYOUT, 0)}.` : "");
+  const amountErr = amount && (!(amt > 0) ? "Enter an amount." : amt < minPayout ? `Minimum payout is ${money(minPayout, 0)}.` : "");
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -92,7 +116,16 @@ export default function PayoutsView() {
           <div className="grid gap-4 sm:grid-cols-3">
             {[
               { icon: Wallet, label: "Profit on account", value: money(profit), sub: account ? `#${account.login}` : "No funded account yet" },
-              { icon: Percent, label: "Your profit split", value: `${split}%`, sub: `Rises to ${PROFIT_SPLIT_BY_WITHDRAWAL.at(-1)}% by your ${PROFIT_SPLIT_BY_WITHDRAWAL.length}rd payout` },
+              {
+                icon: Percent,
+                label: "Your profit split",
+                value: `${split}%`,
+                sub: isFlex
+                  ? account?.rules.flexReducedSplit
+                    ? "Reduced after a floating loss cap hit"
+                    : "Fixed Flex split"
+                  : `Rises to ${PROFIT_SPLIT_BY_WITHDRAWAL.at(-1)}% from your ${ordinal(PROFIT_SPLIT_BY_WITHDRAWAL.length)} clean payout`,
+              },
               { icon: CalendarClock, label: "Next payout window", value: nextWindow && nextWindow.getTime() > Date.now() ? fmtDate(nextWindow.toISOString()) : "Open", sub: `One request every ${PAYOUT_PERIOD_DAYS} days` },
             ].map((s) => (
               <div key={s.label} className="flex items-start gap-4 rounded-card bg-surface p-5">
@@ -141,8 +174,21 @@ export default function PayoutsView() {
                       ))}
                     </select>
                   </Field>
-                  <Field label="Amount (USD)" hint={amountErr || `Minimum ${money(MIN_PAYOUT, 0)}. Larger requests are trimmed to the period cap.`}>
-                    <input type="number" inputMode="decimal" min={MIN_PAYOUT} step="0.01" className={inputCls} value={amount} onChange={(e) => setAmount(e.target.value)} />
+                  <ul className="space-y-1.5 rounded-tile border border-line p-3">
+                    {checklist.map((c) => (
+                      <li key={c.label} className="flex items-center justify-between gap-3 text-[13px]">
+                        <span className={cx("flex items-center gap-2", c.ok ? "text-ink" : "text-muted")}>
+                          <CheckCircle2 size={15} className={c.ok ? "text-success" : "text-line"} /> {c.label}
+                        </span>
+                        {c.hint && <span className="text-[12px] text-muted">{c.hint}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                  <Field
+                    label="Amount (USD)"
+                    hint={amountErr || (isFlex ? `Minimum ${money(minPayout, 0)}. All trades must be closed. No withdrawal cap.` : `Minimum ${money(minPayout, 0)}. Larger requests are trimmed to the ${WITHDRAWAL_CAP_PERCENT}% period cap.`)}
+                  >
+                    <input type="number" inputMode="decimal" min={minPayout} step="0.01" className={inputCls} value={amount} onChange={(e) => setAmount(e.target.value)} />
                   </Field>
                   {method === "Bank Transfer" ? (
                     <>

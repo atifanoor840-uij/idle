@@ -2,37 +2,30 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db, DBPayout, DBTradingAccount } from "@/lib/db";
 import { refreshAccountStatisticsIfNeeded } from "@/lib/accountStatistics";
-import { evaluateAccountRules, loadNewsEventsForAccounts } from "@/lib/accountCompliance";
-import { formatNewsViolation, storedNewsViolationsChanged, withStoredNewsViolations } from "@/lib/newsRule";
-import { calculatePayoutEligibility, getPayoutPeriodStart } from "@/lib/payoutRules";
+import { applyAccountRuleCompliance } from "@/lib/accountCompliance";
+import { formatNewsViolation } from "@/lib/newsRule";
 import {
-  detectStatisticsTradeLayering,
-  formatConcurrentLayeringTrades,
-  formatTradeLayeringViolations,
-  getMaxConcurrentLayers,
-  getStatisticsTrades,
-} from "@/lib/tradeLayering";
+  calculateMinimumWithdrawal,
+  calculatePayoutEligibility,
+  getFirstPayoutEligibleAt,
+  getPayoutPeriodStart,
+  MIN_DAYS_BEFORE_FIRST_PAYOUT,
+  WITHDRAWAL_CAP_PERCENT,
+} from "@/lib/payoutRules";
 import {
-  calculateProfitableTradingDays,
-  calculateTradingDays,
   getAllMinimumHoldingViolationIds,
   getOpenStatisticsTrades,
-  storedMinimumHoldingViolationsChanged,
-  withStoredBreachReason,
-  getWeekendHoldingViolations,
-  getTickScalpingViolations,
-  getInactivityBreach,
+  getOvernightHoldingViolations,
   getProfitConsistency,
-  MINIMUM_HOLDING_RELAXATIONS,
-  withStoredMinimumHoldingViolations,
+  getWeekendHoldingViolations,
 } from "@/lib/accountTradingRules";
 import {
   getChallengeRule,
   getProfitSplitPercent,
-  requiresQualifyingTradingDays,
   resolveRuleVersion,
-  FUNDED_MIN_QUALIFYING_DAYS,
-  INACTIVITY_LIMIT_DAYS,
+  FLEX_CONSISTENCY_PERCENT,
+  FLEX_PROFIT_SPLIT_PERCENT,
+  FLEX_REDUCED_PROFIT_SPLIT_PERCENT,
   LEGACY_PROFIT_CONSISTENCY_PERCENT,
 } from "@/lib/rulebook";
 import { readSessionUserId } from "@/lib/session";
@@ -48,28 +41,19 @@ async function resolveAccountPlan(account: DBTradingAccount) {
   const order = account.orderId ? await db.getOrderById(account.orderId) : undefined;
   const plan = order?.planId ? await db.getPlanById(order.planId) : undefined;
   const ruleVersion = resolveRuleVersion(order);
-  const payloadInitialBalance = Number(
-    account.statisticsPayload?.account_info?.initial_balance ??
-      account.statisticsPayload?.statistics?.account_stats?.initial_balance,
-  );
-  const balanceBeforeProfit = Number(account.balance) - Number(account.totalPl || 0);
-
-  const initialBalance = Number(plan?.size) > 0
-    ? Number(plan?.size)
-    : Number.isFinite(payloadInitialBalance) && payloadInitialBalance > 0
-      ? payloadInitialBalance
-      : Number.isFinite(balanceBeforeProfit) && balanceBeforeProfit > 0
-        ? balanceBeforeProfit
-        : Number(account.balance);
-
   return {
-    initialBalance,
     ruleVersion,
     order,
-    plan,
     rule: getChallengeRule(plan?.name || order?.planId || account.phase, ruleVersion),
   };
 }
+
+function money(value: number) {
+  return `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+}
+
+const reject = (error: string, status = 400, extra: Record<string, unknown> = {}) =>
+  NextResponse.json({ error, ...extra }, { status });
 
 export async function GET() {
   try {
@@ -96,6 +80,11 @@ export async function GET() {
   }
 }
 
+// Withdrawal eligibility (Help Center: When am I eligible to request a withdrawal?):
+// 14 days since the funded account was received, the cycle's Winning Days, realized
+// profit of at least 1% of the initial balance (Flex: $100), KYC approved and zero
+// rule violations. Flex adds: every trade closed, balance above the start, and the
+// 20% consistency rule. Every rule decision comes from the shared engine.
 export async function POST(request: Request) {
   try {
     const user = await getSessionUser();
@@ -103,9 +92,9 @@ export async function POST(request: Request) {
 
     const kyc = await db.getKycByUserId(user.id);
     if (!kyc || kyc.status !== "approved") {
-      return NextResponse.json(
-        { error: "Access Denied: Your identity verification (KYC) must be approved before requesting a payout." },
-        { status: 403 },
+      return reject(
+        "Access Denied: your identity verification (KYC) must be approved and the Trader Agreement signed before requesting a payout.",
+        403,
       );
     }
 
@@ -113,231 +102,182 @@ export async function POST(request: Request) {
     const { accountId, paymentMethod, paymentDetails } = body;
     const requestedAmount = Number(body.amount);
     if (!accountId || !Number.isFinite(requestedAmount) || requestedAmount <= 0 || !paymentMethod || !paymentDetails) {
-      return NextResponse.json(
-        { error: "Required fields: accountId, a positive amount, paymentMethod, and paymentDetails." },
-        { status: 400 },
-      );
+      return reject("Required fields: accountId, a positive amount, paymentMethod, and paymentDetails.");
     }
 
     const storedAccount = await db.getAccountById(accountId);
     if (!storedAccount || storedAccount.userId !== user.id) {
-      return NextResponse.json({ error: "Trading account not found or access denied." }, { status: 404 });
+      return reject("Trading account not found or access denied.", 404);
     }
 
-    const account = await refreshAccountStatisticsIfNeeded(storedAccount);
-    const isFunded = account.status === "Funded" || account.phase === "Funded (Live)" || account.server.includes("Live");
-    if (!isFunded || account.status === "Failed") {
-      return NextResponse.json({ error: "Payouts are only available on active Instant Funded or Funded accounts." }, { status: 400 });
-    }
-
-    const { initialBalance, rule, ruleVersion, order: accountOrder, plan: accountPlan } = await resolveAccountPlan(account);
+    const refreshed = await refreshAccountStatisticsIfNeeded(storedAccount);
+    const { rule, ruleVersion } = await resolveAccountPlan(refreshed);
+    // One compliance pass: persists breaches, news violations and notifications
+    // exactly as the dashboard does, so the payout decision can never disagree with it.
+    const [account] = await applyAccountRuleCompliance([refreshed]);
     const newRulesEnforced = ruleVersion === "current";
-    const profitableDays = calculateProfitableTradingDays(account.statisticsPayload, initialBalance);
-    if (profitableDays.count < profitableDays.requiredDays) {
-      return NextResponse.json(
-        { error: `Payout requires 3 profitable trading days with at least $${profitableDays.threshold.toLocaleString()} (0.5% of initial balance) on each day. Current progress: ${profitableDays.count}/3.` },
-        { status: 400 },
+    const isFlex = rule.key === "flex";
+
+    if (!account.fundedAccount || account.status === "Failed") {
+      const reason = account.ruleAlerts.find((alert) => alert.type === "error");
+      return reject(
+        account.status === "Failed"
+          ? `Account breached${reason ? `: ${reason.title}` : ""}. Payouts are not available on a closed account.`
+          : "Payouts are only available on active Instant or Funded accounts.",
+        account.status === "Failed" ? 409 : 400,
       );
     }
 
-    // Instant and every Funded stage additionally need 5 qualifying days in total
-    // (the 3 Profitable Days plus 2 more that can be plain Trading Days).
-    if (requiresQualifyingTradingDays(rule, account.phase, account.status, ruleVersion)) {
-      const qualifyingDays = Math.max(
-        profitableDays.count,
-        calculateTradingDays(account.statisticsPayload).count,
+    const initialBalance = account.size;
+    const userPayouts = await db.getPayoutsByUserId(user.id);
+    const accountPayouts = userPayouts.filter((payout) => payout.accountId === account.id);
+    if (accountPayouts.some((payout) => payout.status === "pending" || payout.status === "approved" || payout.status === "processing")) {
+      return reject("A withdrawal request for this account is already being processed.");
+    }
+
+    // 14 days must pass after the funded account is received.
+    const fundedAt = account.deliveredAt || account.createdAt;
+    const eligibleAt = getFirstPayoutEligibleAt(fundedAt);
+    if (newRulesEnforced && eligibleAt && eligibleAt.getTime() > Date.now()) {
+      return reject(
+        `Withdrawals open ${MIN_DAYS_BEFORE_FIRST_PAYOUT} days after the funded account is received. This account is eligible from ${eligibleAt.toISOString().slice(0, 10)}.`,
       );
-      if (qualifyingDays < FUNDED_MIN_QUALIFYING_DAYS) {
-        return NextResponse.json(
-          { error: `Payout requires ${FUNDED_MIN_QUALIFYING_DAYS} qualifying days in total (3 profitable + 2 trading days). Current progress: ${qualifyingDays}/${FUNDED_MIN_QUALIFYING_DAYS}.` },
-          { status: 400 },
+    }
+
+    // Winning Days in the current trading cycle (5 on Funded / Instant / Flex funded).
+    if (account.currentTradingDays < account.minTradingDays) {
+      return reject(
+        `Payout requires ${account.minTradingDays} ${isFlex ? "profitable" : "Winning"} Days this cycle, each with at least ${money(account.winningDayThreshold)} (0.5% of the initial balance). Current progress: ${account.currentTradingDays}/${account.minTradingDays}.`,
+      );
+    }
+
+    // Overnight holding is a soft breach that leads to withdrawal rejection.
+    const overnightViolations = newRulesEnforced && !rule.overnightHolding && !account.overnightHoldingAddon
+      ? getOvernightHoldingViolations(account.statisticsPayload, { weekendHoldingAddon: Boolean(account.weekendHoldingAddon) })
+      : [];
+    if (overnightViolations.length > 0) {
+      return reject(
+        `Withdrawal rejected: ${overnightViolations.length} position${overnightViolations.length === 1 ? "" : "s"} stayed open through the 00:00 UTC reset (overnight holding). Contact support if you believe this is wrong.`,
+        409,
+      );
+    }
+
+    const openTrades = getOpenStatisticsTrades(account.statisticsPayload);
+    if (isFlex) {
+      if (openTrades.length > 0) {
+        return reject("Close every open trade before requesting a Flex payout.");
+      }
+      const consistency = getProfitConsistency(account.statisticsPayload, account.cycleStart);
+      if (consistency.bestDay && consistency.ratioPercent > FLEX_CONSISTENCY_PERCENT) {
+        return reject(
+          `Payout delayed by the ${FLEX_CONSISTENCY_PERCENT}% consistency rule: your best day (${money(consistency.bestDay.profit)} on ${consistency.bestDay.date}) is ${consistency.ratioPercent}% of your ${money(consistency.totalProfit)} total profit. This is not a breach — request again once no single day is above ${FLEX_CONSISTENCY_PERCENT}%.`,
         );
       }
     }
 
-    // Legacy rulebook: breaking the 30% profit consistency rule fails the account.
-    // The compliance run marks it Failed; this also stops a payout in the meantime.
+    // Legacy rulebook: breaking the 30% profit consistency rule fails the account
+    // (the compliance pass above already marks it Failed); this stops the payout.
     if (!newRulesEnforced) {
       const consistency = getProfitConsistency(account.statisticsPayload);
       if (consistency.bestDay && consistency.ratioPercent > LEGACY_PROFIT_CONSISTENCY_PERCENT) {
-        return NextResponse.json(
-          { error: `Payout not eligible yet: your best day ($${consistency.bestDay.profit.toLocaleString()} on ${consistency.bestDay.date}) is ${consistency.ratioPercent}% of your $${consistency.totalProfit.toLocaleString()} total profit. Under the ${LEGACY_PROFIT_CONSISTENCY_PERCENT}% consistency rule it must be ${LEGACY_PROFIT_CONSISTENCY_PERCENT}% or less. The account has breached the Profit Consistency Rule and is not eligible for a payout.` },
-          { status: 400 },
+        return reject(
+          `Payout not eligible: your best day is ${consistency.ratioPercent}% of total profit, above the ${LEGACY_PROFIT_CONSISTENCY_PERCENT}% consistency rule.`,
         );
       }
     }
 
-    if (newRulesEnforced && getTickScalpingViolations(account.statisticsPayload).length > 0) {
-      return NextResponse.json(
-        { error: "Account breached: 3 or more trades held under 10 seconds were closed within a single hour (tick scalping)." },
-        { status: 409 },
-      );
-    }
-
-    const inactivityBreach = newRulesEnforced ? getInactivityBreach(account.statisticsPayload) : null;
-    if (inactivityBreach) {
-      return NextResponse.json(
-        { error: `Account breached: no trade has been executed for ${inactivityBreach.daysSinceLastTrade} days (limit is ${INACTIVITY_LIMIT_DAYS}).` },
-        { status: 409 },
-      );
-    }
-
-    // Trade layering is a hard breach on Live (Funded) and Instant accounts (both
-    // already gated behind `isFunded` above): the very first trade opened inside the
-    // 5-minute window — open or closed — fails the account, with no warning step.
-    const layeringViolations = detectStatisticsTradeLayering(account.statisticsPayload);
-    if (layeringViolations.length > 0) {
-      return NextResponse.json(
-        {
-          error: `Account breached: ${layeringViolations.length} trade${layeringViolations.length === 1 ? "" : "s"} opened inside the 5-minute layering window from the previous trade's opening time. ${formatTradeLayeringViolations(layeringViolations)}`,
-        },
-        { status: 409 },
-      );
-    }
-
-    // Instant Funded's additional cap: a maximum of 2 concurrent same-instrument,
-    // same-direction positions. A 3rd fails the account even if entries were spaced
-    // more than 5 minutes apart.
-    if (rule.key === "instant_funding") {
-      const concurrentLayering = getMaxConcurrentLayers(
-        getStatisticsTrades(account.statisticsPayload),
-        getOpenStatisticsTrades(account.statisticsPayload),
-      );
-      if (concurrentLayering.maxOverlap >= 3) {
-        return NextResponse.json(
-          {
-            error: `Account breached: ${concurrentLayering.maxOverlap} same-instrument, same-direction positions were held open at once (Instant Funded cap is 2). ${formatConcurrentLayeringTrades(concurrentLayering.violatingTrades)}`,
-          },
-          { status: 409 },
-        );
-      }
-    }
-
-    const minimumHoldingViolationIds = getAllMinimumHoldingViolationIds(account.statisticsPayload);
-    if (storedMinimumHoldingViolationsChanged(account.statisticsPayload, minimumHoldingViolationIds)) {
-      account.statisticsPayload = withStoredMinimumHoldingViolations(account.statisticsPayload, minimumHoldingViolationIds);
-      await db.saveAccount(account);
-    }
-    if (minimumHoldingViolationIds.length > MINIMUM_HOLDING_RELAXATIONS) {
-      account.status = "Failed";
-      // Pin the reason so the dashboard banner names this rule even if a later
-      // statistics refresh stops reporting the violation.
-      account.statisticsPayload = withStoredBreachReason(account.statisticsPayload, {
-        id: "minimum-holding-time-breach",
-        title: "Minimum Holding Time Breach",
-        message: `Account ${account.id} failed because a trade was closed before the required 180 seconds (3 minutes).`,
-      });
-      await db.saveAccount(account);
-      const order = account.orderId ? await db.getOrderById(account.orderId) : undefined;
-      if (order) {
-        order.status = "Failed";
-        order.updatedAt = new Date().toISOString();
-        await db.saveOrder(order);
-      }
-      await db.saveAuditLog({
-        id: `log-${Math.random().toString(36).substring(2, 11)}`,
-        userId: account.userId,
-        userName: "Rule Engine",
-        targetId: account.id,
-        targetType: "account",
-        action: "minimum_holding_time_breach",
-        description: `Account ${account.id} failed after its second lifetime trade closed before 180 seconds.`,
-        createdAt: new Date().toISOString(),
-      });
-      await db.saveNotification({
-        id: `rule-${account.id}-minimum-holding-time-breach`,
-        userId: account.userId,
-        title: "Minimum Holding Time Breach",
-        message: `Account ${account.id} failed because a second lifetime trade was closed before the required 180 seconds.`,
-        type: "error",
-        channel: "in_app",
-        status: "sent",
-        read: false,
-        sentAt: new Date().toISOString(),
-      });
-      return NextResponse.json(
-        { error: "Account breached: a second trade was closed before the 3-minute minimum holding time." },
-        { status: 409 },
-      );
-    }
-    const weekendHoldingAllowed = rule.fundedWeekendHolding || Boolean(account.weekendHoldingAddon);
-    const weekendHoldingViolations = weekendHoldingAllowed
-      ? []
-      : getWeekendHoldingViolations(account.statisticsPayload);
-    // News Trading Rule (soft breach): never blocks the payout, but the positive
-    // profit of every trade opened/closed inside a restricted news window is
-    // removed from withdrawable profit and the request is flagged for review.
-    const newsEvents = await loadNewsEventsForAccounts([account]);
-    const newsEvaluation = evaluateAccountRules(account, { order: accountOrder, plan: accountPlan, newsEvents });
-    const newsViolations = newsEvaluation.newsViolations;
-    const newsProfitToDeduct = newsEvaluation.newsProfitToDeduct;
-    if (newsEvents !== null && storedNewsViolationsChanged(account.statisticsPayload, newsViolations)) {
-      account.statisticsPayload = withStoredNewsViolations(account.statisticsPayload, newsViolations);
-      await db.saveAccount(account);
-    }
     const periodStart = getPayoutPeriodStart(account.createdAt);
-    const userPayouts = await db.getPayoutsByUserId(user.id);
-    const accountPayouts = userPayouts.filter(
-      (payout) =>
-        payout.accountId === account.id &&
-        payout.status !== "rejected" &&
-        new Date(payout.createdAt).getTime() >= periodStart.getTime(),
-    );
-    const alreadyRequestedInPeriod = accountPayouts.reduce((sum, payout) => sum + Number(payout.amount || 0), 0);
-    // Progressive performance-fee split: 80% on the first withdrawal, 85% on the
-    // second, 90% on the third and every one after. Legacy-pinned accounts keep the
-    // flat split from their rule set.
-    const priorSuccessfulPayouts = userPayouts.filter(
-      (payout) => payout.accountId === account.id && payout.status === "paid",
-    ).length;
-    const profitSplitPercent = newRulesEnforced
-      ? getProfitSplitPercent(priorSuccessfulPayouts)
-      : rule.profitSplitPercent;
+    const alreadyRequestedInPeriod = accountPayouts
+      .filter((payout) => payout.status !== "rejected" && new Date(payout.createdAt).getTime() >= periodStart.getTime())
+      .reduce((sum, payout) => sum + Number(payout.amount || 0), 0);
+
+    // Profit split: 70% → 80% → 90% → 100%, stepping up only while every earlier
+    // withdrawal was clean (a rejected withdrawal restarts the progression). Flex is
+    // a flat 85%, cut to 50% after the first floating loss cap hit. Legacy-pinned
+    // accounts keep the flat split from their rule set.
+    const sorted = [...accountPayouts].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    const lastRejectedIndex = sorted.map((payout) => payout.status).lastIndexOf("rejected");
+    const cleanPaidPayouts = sorted.slice(lastRejectedIndex + 1).filter((payout) => payout.status === "paid").length;
+    const profitSplitPercent = !newRulesEnforced
+      ? rule.profitSplitPercent
+      : isFlex
+        ? account.flexReducedSplit
+          ? FLEX_REDUCED_PROFIT_SPLIT_PERCENT
+          : FLEX_PROFIT_SPLIT_PERCENT
+        : getProfitSplitPercent(cleanPaidPayouts);
+
     const eligibility = calculatePayoutEligibility({
       initialBalance,
       currentBalance: account.balance,
       requestedAmount,
       alreadyRequestedInPeriod,
       profitSplitPercent,
-      nonWithdrawableProfit: newsProfitToDeduct,
+      nonWithdrawableProfit: account.newsProfitToDeduct,
+      uncapped: isFlex,
     });
 
     if (eligibility.availableProfit <= 0) {
-      return NextResponse.json(
-        {
-          error: newsProfitToDeduct > 0 && eligibility.grossProfit > 0
-            ? `No withdrawable profit is available: $${newsProfitToDeduct.toLocaleString()} of profit came from trades opened or closed inside high-impact news windows and is not withdrawable.`
-            : "No withdrawable profit is available. The account balance must exceed its initial balance.",
-          newsViolations,
-          newsProfitToDeduct,
-        },
-        { status: 400 },
+      return reject(
+        account.newsProfitToDeduct > 0 && eligibility.grossProfit > 0
+          ? `No withdrawable profit is available: ${money(account.newsProfitToDeduct)} of profit came from trades opened or closed inside high-impact news windows and is not withdrawable.`
+          : "No withdrawable profit is available. Only realized profit above the initial balance can be withdrawn.",
+        400,
+        { newsViolations: account.newsViolations, newsProfitToDeduct: account.newsProfitToDeduct },
+      );
+    }
+
+    // Minimum realized profit: 1% of the initial balance (Flex: $100). Below it the
+    // profit stays on the account and counts toward the next payout period.
+    const minimumWithdrawal = newRulesEnforced ? calculateMinimumWithdrawal(initialBalance, isFlex) : 100;
+    if (eligibility.availableProfit < minimumWithdrawal) {
+      return reject(
+        `Your realized profit (${money(eligibility.availableProfit)}) is below the ${money(minimumWithdrawal)} minimum${isFlex ? "" : " (1% of the initial balance)"}. It stays on the account and counts toward your next payout period.`,
       );
     }
     if (eligibility.maximumWithdrawal <= 0) {
-      return NextResponse.json(
-        { error: `The 6% withdrawal cap for this payout period has already been reached ($${eligibility.withdrawalCap.toLocaleString()}).` },
-        { status: 400 },
-      );
+      return reject(`The ${WITHDRAWAL_CAP_PERCENT}% withdrawal cap for this payout period has already been reached (${money(eligibility.withdrawalCap)}).`);
+    }
+    if (eligibility.adjustedAmount < minimumWithdrawal) {
+      return reject(`The minimum withdrawal request is ${money(minimumWithdrawal)}.`);
     }
 
-    if (eligibility.adjustedAmount < 100) {
-      return NextResponse.json({ error: "The minimum gross payout request is $100." }, { status: 400 });
+    // Flex: once the trailing floor has locked at the starting balance, a withdrawal
+    // that takes the balance down to the floor leaves no room and closes the account.
+    if (isFlex && account.lossFloor >= initialBalance && account.balance - eligibility.adjustedAmount <= account.lossFloor) {
+      return reject(
+        `This withdrawal would take the balance down to your ${money(account.lossFloor)} drawdown floor, which closes the account. Request less than ${money(Math.max(0, account.balance - account.lossFloor))}.`,
+      );
     }
 
     const complianceFlags: string[] = [];
-    if (weekendHoldingViolations.length > 0) {
-      complianceFlags.push(`${weekendHoldingViolations.length} prohibited Instant Funded weekend-holding position${weekendHoldingViolations.length === 1 ? "" : "s"}.`);
-    }
-    if (newsViolations.length > 0) {
-      const tickets = new Set(newsViolations.map((violation) => violation.ticket)).size;
+    const weekendViolations =
+      !newRulesEnforced || rule.fundedWeekendHolding || account.weekendHoldingAddon
+        ? []
+        : getWeekendHoldingViolations(account.statisticsPayload);
+    if (weekendViolations.length > 0) {
       complianceFlags.push(
-        `News Trading Rule: ${tickets} trade${tickets === 1 ? "" : "s"} opened/closed within a high-impact news window; $${newsProfitToDeduct.toLocaleString()} profit deducted from withdrawable profit. ${newsViolations.map(formatNewsViolation).join("; ")}`,
+        `Weekend holding without the add-on: ${weekendViolations.length} position${weekendViolations.length === 1 ? "" : "s"} (trade removal or profit adjustment).`,
       );
     }
-    const complianceNote = complianceFlags.length > 0
-      ? `Automated compliance flag: ${complianceFlags.join(" ")}`
-      : undefined;
+    if (account.newsViolations.length > 0) {
+      const tickets = new Set(account.newsViolations.map((violation) => violation.ticket)).size;
+      complianceFlags.push(
+        `News Trading Rule: ${tickets} trade${tickets === 1 ? "" : "s"} opened/closed within a high-impact news window; ${money(account.newsProfitToDeduct)} profit deducted from withdrawable profit. ${account.newsViolations.map(formatNewsViolation).join("; ")}`,
+      );
+    }
+    if (isFlex) {
+      const shortHolds = getAllMinimumHoldingViolationIds(account.statisticsPayload);
+      if (shortHolds.length > 0) {
+        complianceFlags.push(`Flex minimum holding review: ${shortHolds.length} trade${shortHolds.length === 1 ? "" : "s"} closed in under 3 minutes.`);
+      }
+    }
+    // 1-Step / 2-Step: the account fee is returned with the first clean withdrawal.
+    const firstPayout = !accountPayouts.some((payout) => payout.status === "paid");
+    const feeReturnDue = newRulesEnforced && firstPayout && (rule.key === "one_step_pro" || rule.key === "two_step_standard");
+    const adminNotes = [
+      complianceFlags.length > 0 ? `Automated compliance flag: ${complianceFlags.join(" ")}` : "",
+      feeReturnDue ? "First withdrawal: return the account fee with this payout if there are no rule violations." : "",
+    ].filter(Boolean);
 
     const payoutId = "pay-" + Math.floor(1000 + Math.random() * 9000);
     const newPayout: DBPayout = {
@@ -350,23 +290,24 @@ export async function POST(request: Request) {
       paymentMethod,
       paymentDetails: typeof paymentDetails === "string" ? paymentDetails : JSON.stringify(paymentDetails),
       status: "pending",
-      notes: complianceNote,
+      notes: adminNotes.length ? adminNotes.join(" ") : undefined,
       createdAt: new Date().toISOString(),
     };
 
     await db.savePayout(newPayout);
 
     const adjustmentText = eligibility.wasAdjusted
-      ? ` Your requested amount was automatically adjusted to $${eligibility.adjustedAmount.toLocaleString()} under the 6% per-period withdrawal cap.`
+      ? ` Your requested amount was automatically adjusted to ${money(eligibility.adjustedAmount)} under the ${WITHDRAWAL_CAP_PERCENT}% per-period withdrawal cap.`
       : "";
-    const complianceText = complianceFlags.length > 0
-      ? " The request includes a trading-rule compliance flag for review."
-      : "";
+    const complianceText = complianceFlags.length > 0 ? " The request includes a trading-rule compliance flag for review." : "";
+    const tradingText = openTrades.length > 0
+      ? " Close all open trades now and do not open new ones until the withdrawal is processed."
+      : " Do not open new trades until the withdrawal is processed.";
     await db.saveNotification({
       id: "notif-" + Math.random().toString(36).substring(2, 11),
       userId: user.id,
       title: "Payout Requested",
-      message: `Your gross payout request of $${eligibility.adjustedAmount.toLocaleString()} has been submitted.${adjustmentText}${complianceText}`,
+      message: `Your gross payout request of ${money(eligibility.adjustedAmount)} (${profitSplitPercent}% split: ${money(eligibility.traderShare)}) has been submitted.${adjustmentText}${complianceText}${tradingText}${feeReturnDue ? " Your account fee is returned with this first withdrawal if no rule was violated." : ""}`,
       type: complianceFlags.length > 0 ? "warning" : "info",
       channel: "in_app",
       status: "sent",
@@ -385,9 +326,11 @@ export async function POST(request: Request) {
         wasAdjusted: eligibility.wasAdjusted,
         grossProfit: eligibility.grossProfit,
         nonWithdrawableProfit: eligibility.nonWithdrawableProfit,
+        profitSplitPercent,
+        feeReturnDue,
       },
-      newsViolations,
-      newsProfitToDeduct,
+      newsViolations: account.newsViolations,
+      newsProfitToDeduct: account.newsProfitToDeduct,
       complianceReview: complianceFlags.length > 0,
     });
   } catch (error) {

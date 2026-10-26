@@ -6,12 +6,12 @@ export const PHASE_FUNDED = "Funded (Live)";
 
 /**
  * Ordered account stages a plan actually runs through.
- * One Step and Instant never issue a Phase 2 (Verification) account.
+ * One Step, Flex and Instant never issue a Phase 2 (Verification) account.
  */
 export function getStagePhases(planName?: string): string[] {
   const rule = getChallengeRule(planName);
   if (rule.key === "instant_funding") return [PHASE_FUNDED];
-  if (rule.key === "one_step_pro") return [PHASE_ONE, PHASE_FUNDED];
+  if (rule.key === "one_step_pro" || rule.key === "flex") return [PHASE_ONE, PHASE_FUNDED];
   return [PHASE_ONE, PHASE_TWO, PHASE_FUNDED];
 }
 

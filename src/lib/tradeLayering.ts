@@ -1,8 +1,8 @@
 import { parseStatisticsDate } from "./statisticsTime";
 
-export const TRADE_LAYERING_WINDOW_MS = 5 * 60 * 1000;
-// Instant accounts: most same-instrument, same-direction positions that may be
-// open at once. Opening one more than this fails the account.
+export const TRADE_LAYERING_WINDOW_MS = 10 * 60 * 1000;
+// Instant accounts: most positions (any instrument, any direction) that may be
+// open at once. Opening a 3rd concurrent layer fails the account.
 export const MAX_CONCURRENT_LAYERS = 2;
 
 export type TradeLayeringViolation = {
@@ -33,7 +33,7 @@ function normalizeDirection(value: unknown): "Buy" | "Sell" | "Unknown" {
 
 // Only the open timestamp gates inclusion here — the Standard Rule (below) applies
 // across every trade regardless of instrument or direction, so a trade with an
-// unparseable symbol/side must still count toward the 5-minute window instead of
+// unparseable symbol/side must still count toward the 10-minute window instead of
 // silently dropping out of it.
 function normalizeTrade(trade: any, index: number): NormalizedTrade | null {
   const openedAt = parseStatisticsDate(trade?.open_time ?? trade?.opened_at ?? trade?.openTime);
@@ -52,7 +52,7 @@ export function getStatisticsTrades(payload: any): any[] {
   return Array.isArray(rows) ? rows : [];
 }
 
-// Standard Rule: only 1 trade may be opened within a 5-minute window from the
+// Standard Rule: only 1 trade may be opened within a 10-minute window from the
 // previous trade's opening time — across every instrument and direction, not just
 // matching pairs (Help Center: Trade Layering — "applies to all trades"). Every
 // trade is compared to whichever trade opened immediately before it, in open-time
@@ -162,14 +162,18 @@ export type ConcurrentLayeringResult = {
 };
 
 function normalizeForOverlap(trade: any, index: number, isOpen: boolean, nowMs: number): OverlapInterval | null {
-  const instrument = String(trade?.symbol ?? trade?.instrument ?? "").trim().toUpperCase();
+  const instrument = String(trade?.symbol ?? trade?.instrument ?? "").trim().toUpperCase() || "UNKNOWN";
   const direction = normalizeDirection(trade?.type ?? trade?.direction ?? trade?.side);
   const openedAt = parseStatisticsDate(trade?.open_time ?? trade?.opened_at ?? trade?.openTime);
-  if (!instrument || !direction || direction === "Unknown" || !openedAt) return null;
+  if (!openedAt) return null;
 
   const closedAt = isOpen ? null : parseStatisticsDate(trade?.close_time ?? trade?.closed_at ?? trade?.closeTime);
+  // A closed trade with no close time cannot be bounded, so it cannot prove an overlap.
+  if (!isOpen && !closedAt) return null;
   return {
-    key: `${instrument}:${direction}`,
+    // Every trade is a layer, whatever its symbol or side (Help Center: Trade
+    // Layering — "Applies to all trades and all instruments").
+    key: "ALL",
     id: String(trade?.ticket ?? trade?.id ?? `${isOpen ? "open" : "closed"}-${index + 1}`),
     instrument,
     direction,
@@ -179,10 +183,9 @@ function normalizeForOverlap(trade: any, index: number, isOpen: boolean, nowMs: 
   };
 }
 
-// Instant Funded's additional layering cap: the maximum number of same-instrument,
-// same-direction positions ever held open at the same time, regardless of how far
-// apart each was opened (Help Center: Trade Layering — Instant Accounts, Additional
-// Cap). Closed trades need a close time to bound their interval; still-open
+// Instant's additional layering cap: the maximum number of positions ever held open
+// at the same time, regardless of how far apart each was opened (Help Center: Trade
+// Layering — Instant accounts: additional cap). Closed trades need a close time to bound their interval; still-open
 // positions are bounded by `now`. Also returns the exact trades held open at the
 // peak so a breach can name them.
 export function getMaxConcurrentLayers(
@@ -191,10 +194,17 @@ export function getMaxConcurrentLayers(
   now = new Date(),
 ): ConcurrentLayeringResult {
   const nowMs = now.getTime();
+  const closedIntervals = closedTrades
+    .map((trade, index) => normalizeForOverlap(trade, index, false, nowMs))
+    .filter((interval): interval is OverlapInterval => Boolean(interval));
+  // A trade can appear in both feeds right after it closes; count it once.
+  const closedIds = new Set(closedIntervals.map((interval) => interval.id));
   const intervals = [
-    ...closedTrades.map((trade, index) => normalizeForOverlap(trade, index, false, nowMs)),
-    ...openTrades.map((trade, index) => normalizeForOverlap(trade, index, true, nowMs)),
-  ].filter((interval): interval is OverlapInterval => Boolean(interval));
+    ...closedIntervals,
+    ...openTrades
+      .map((trade, index) => normalizeForOverlap(trade, index, true, nowMs))
+      .filter((interval): interval is OverlapInterval => Boolean(interval) && !closedIds.has(interval!.id)),
+  ];
 
   const byKey = new Map<string, OverlapInterval[]>();
   for (const interval of intervals) {

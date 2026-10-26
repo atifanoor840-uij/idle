@@ -17,10 +17,10 @@ export const MINIMUM_HOLDING_RELAXATIONS = 0;
 // rows with a missing or duplicated open timestamp read as a 0-second hold and were
 // permanently recorded as violations even though the trade never broke the rule.
 export const MINIMUM_HOLDING_DETECTOR_VERSION = 2;
-// Weekend closure per the rulebook: Saturday 00:00 UTC (Friday midnight) to Monday
-// 00:00 UTC, a fixed 48-hour window applied to every account (Help Center: Weekend
-// Holding). Expressed as hours after Friday 00:00 UTC, so 24 = Saturday 00:00 UTC.
-export const DEFAULT_WEEKEND_CLOSE_UTC_HOUR = 24;
+// Weekend closure per the rulebook: Friday 23:00 UTC to Sunday 23:00 UTC, a fixed
+// 48-hour window applied to every instrument, crypto included (Help Center:
+// Overnight & Weekend Holding). Expressed as hours after Friday 00:00 UTC.
+export const DEFAULT_WEEKEND_CLOSE_UTC_HOUR = 23;
 export const WEEKEND_CLOSURE_DURATION_MS = 48 * 60 * 60 * 1000;
 
 type NormalizedTimedTrade = {
@@ -46,6 +46,15 @@ export type WeekendHoldingViolation = {
   openedAt: string;
   closedAt?: string;
   weekendCloseAt: string;
+};
+
+export type OvernightHoldingViolation = {
+  tradeId: string;
+  instrument: string;
+  openedAt: string;
+  closedAt?: string;
+  /** First 00:00 UTC reset the position was still open through. */
+  resetAt: string;
 };
 
 export type SingleTradeLossViolation = {
@@ -146,7 +155,9 @@ export function getSingleTradeLossViolations(
   const violations: SingleTradeLossViolation[] = [];
 
   getStatisticsTrades(payload).forEach((trade, index) => {
-    const profit = finiteNumber(trade?.net_profit ?? trade?.profit ?? trade?.pnl, 0);
+    // Gross trade result: the rule is about the position's own floating loss, so
+    // commission and swap are not counted toward it.
+    const profit = finiteNumber(trade?.profit ?? trade?.net_profit ?? trade?.pnl, 0);
     if (profit >= 0 || -profit <= limit) return;
     violations.push({
       tradeId: tradeId(trade, index),
@@ -303,7 +314,16 @@ function dayProfitFromRow(row: any) {
  * performance rows and falls back to summing closed trades. Today is left out
  * while positions are still open, because its result is not final yet.
  */
-export function getDailyNetProfits(payload: any): Map<string, number> {
+export function getDailyNetProfits(payload: any, since?: string | null): Map<string, number> {
+  const all = getAllDailyNetProfits(payload);
+  // Winning Days restart in each new trading cycle after a withdrawal: only days
+  // after the cycle start count.
+  const sinceDay = since ? String(since).slice(0, 10) : "";
+  if (!sinceDay) return all;
+  return new Map(Array.from(all.entries()).filter(([date]) => date > sinceDay || !/^\d{4}-\d{2}-\d{2}$/.test(date)));
+}
+
+function getAllDailyNetProfits(payload: any): Map<string, number> {
   const rows = payload?.statistics?.equity_curve?.daily_performance;
   const openTrades = getOpenStatisticsTrades(payload);
   const today = new Date().toISOString().slice(0, 10);
@@ -356,8 +376,8 @@ export type ProfitConsistency = {
 };
 
 /** Best single trading day measured against total net profit (consistency rule). */
-export function getProfitConsistency(payload: any): ProfitConsistency {
-  const days = Array.from(getDailyNetProfits(payload).entries());
+export function getProfitConsistency(payload: any, since?: string | null): ProfitConsistency {
+  const days = Array.from(getDailyNetProfits(payload, since).entries());
   const totalProfit = Number(days.reduce((sum, [, profit]) => sum + profit, 0).toFixed(2));
   let bestDay: ProfitConsistency["bestDay"] = null;
   for (const [date, profit] of days) {
@@ -368,9 +388,11 @@ export function getProfitConsistency(payload: any): ProfitConsistency {
   return { totalProfit, bestDay, ratioPercent };
 }
 
-export function calculateProfitableTradingDays(payload: any, initialBalance: number) {
+// Winning Days: separate UTC days whose profit reached at least 0.5% of the Initial
+// Account Balance. `since` restricts the count to the current trading cycle.
+export function calculateProfitableTradingDays(payload: any, initialBalance: number, since?: string | null) {
   const threshold = Number((Math.max(0, initialBalance) * (PROFITABLE_DAY_THRESHOLD_PERCENT / 100)).toFixed(2));
-  const dailyResults = getDailyNetProfits(payload);
+  const dailyResults = getDailyNetProfits(payload, since);
 
   const qualifyingDays = Array.from(dailyResults.entries())
     .filter(([, profit]) => profit >= threshold)
@@ -445,9 +467,32 @@ export function getTickScalpingViolations(payload: any): TickScalpingViolation[]
   return violations;
 }
 
-// At least one trade must be executed every 30 consecutive days, counted from the
-// first executed trade (Help Center: Is there an inactivity rule?).
-export function getInactivityBreach(payload: any, now = new Date()) {
+/** Most recent executed trade (an open or a close), or null when nothing has traded. */
+export function getLastTradeActivity(payload: any): Date | null {
+  const closed = normalizedClosedTrades(payload);
+  const open = getOpenStatisticsTrades(payload)
+    .map(normalizeTrade)
+    .filter((trade): trade is NormalizedTimedTrade => Boolean(trade));
+  const timestamps = [...closed, ...open].flatMap((trade) =>
+    trade.closedAt ? [trade.openedAt.getTime(), trade.closedAt.getTime()] : [trade.openedAt.getTime()],
+  );
+  return timestamps.length ? new Date(Math.max(...timestamps)) : null;
+}
+
+// At least one trade must be executed every 30 consecutive calendar days, counted
+// from the last executed trade (Help Center: Is there an inactivity rule?). An
+// account that has never traded counts from `anchor` (its delivery date).
+export function getInactivityBreach(payload: any, now = new Date(), anchor?: string | null) {
+  const anchorDate = anchor ? parseDate(anchor) : null;
+  if (!getLastTradeActivity(payload) && anchorDate) {
+    const daysSince = Math.floor((now.getTime() - anchorDate.getTime()) / (24 * 60 * 60 * 1000));
+    if (daysSince < INACTIVITY_LIMIT_DAYS) return null;
+    return { lastActivityAt: anchorDate.toISOString(), daysSinceLastTrade: daysSince };
+  }
+  return getInactivityBreachFromTrades(payload, now);
+}
+
+function getInactivityBreachFromTrades(payload: any, now: Date) {
   const closed = normalizedClosedTrades(payload);
   const open = getOpenStatisticsTrades(payload)
     .map(normalizeTrade)
@@ -520,5 +565,62 @@ export function getWeekendHoldingViolations(
       weekendCloseAt: weekendStart.toISOString(),
     }];
   });
+}
+
+// Overnight holding (1-Step, 2-Step and Instant): every trade must open and close
+// inside the same UTC day, so no position may stay open through a 00:00 UTC reset.
+// With the Weekend Holding add-on, the resets that fall inside the weekend closure
+// (Saturday, Sunday and the Monday reset that ends it) are not counted, so a
+// position held from Friday into the next week is not an overnight violation.
+export function getOvernightHoldingViolations(
+  payload: any,
+  options: { weekendHoldingAddon?: boolean } = {},
+  now = new Date(),
+): OvernightHoldingViolation[] {
+  const closed = normalizedClosedTrades(payload);
+  const open = getOpenStatisticsTrades(payload)
+    .map(normalizeTrade)
+    .filter((trade): trade is NormalizedTimedTrade => Boolean(trade));
+  const seen = new Set<string>();
+
+  return [...closed, ...open].flatMap((trade) => {
+    if (seen.has(trade.id)) return [];
+    seen.add(trade.id);
+    const end = (trade.closedAt || now).getTime();
+    const openedDay = Date.UTC(
+      trade.openedAt.getUTCFullYear(),
+      trade.openedAt.getUTCMonth(),
+      trade.openedAt.getUTCDate(),
+    );
+    // A position closed exactly at 00:00:00 closed on the old day, so a reset only
+    // counts once the position is still open after it.
+    for (let reset = openedDay + DAY_MS; reset < end; reset += DAY_MS) {
+      const weekday = new Date(reset).getUTCDay(); // 6 = Sat, 0 = Sun, 1 = Mon
+      if (options.weekendHoldingAddon && (weekday === 6 || weekday === 0 || weekday === 1)) continue;
+      return [{
+        tradeId: trade.id,
+        instrument: trade.instrument,
+        openedAt: trade.openedAt.toISOString(),
+        closedAt: trade.closedAt?.toISOString(),
+        resetAt: new Date(reset).toISOString(),
+      }];
+    }
+    return [];
+  });
+}
+
+// Flex Maximum Loss trails the highest CLOSED balance (floating profit never raises
+// it). The feed's daily rows carry the closed balance per day; the live balance is
+// the latest closed balance.
+export function getPeakClosedBalance(payload: any, initialBalance: number, currentBalance: number) {
+  const rows = payload?.statistics?.equity_curve?.daily_performance;
+  let peak = Math.max(initialBalance, Number.isFinite(currentBalance) ? currentBalance : initialBalance);
+  if (Array.isArray(rows)) {
+    for (const row of rows) {
+      const balance = Number(row?.cumulative_balance ?? row?.balance);
+      if (Number.isFinite(balance) && balance > peak) peak = balance;
+    }
+  }
+  return peak;
 }
 

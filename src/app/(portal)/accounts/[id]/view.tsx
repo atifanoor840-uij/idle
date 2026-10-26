@@ -2,11 +2,16 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowLeftRight,
   ArrowRight,
   BarChart3,
+  CalendarCheck,
   Check,
+  CircleCheck,
+  CircleDashed,
+  CircleX,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
@@ -21,13 +26,17 @@ import {
   Lock,
   Monitor,
   RefreshCw,
+  Shield,
   Smartphone,
   Tablet,
+  Timer,
+  TrendingUp,
   X,
 } from "lucide-react";
 import { money } from "@/lib/mock";
 import { api, ApiError } from "@/lib/propApi";
-import { fmtDate, toUiAccount, useApi } from "@/lib/portal-data";
+import { fmtDate, toUiAccount, useApi, type AccountRules, type RuleCheck } from "@/lib/portal-data";
+import { BREACH_APPEAL_WINDOW_DAYS, FLEX_ACTIVATION_WINDOW_HOURS, LEVERAGE_LIMIT, SCALING_INCREASE_PERCENT, SCALING_PAYOUTS_PER_STEP } from "@/lib/rulebook";
 import { buildPerformanceSeries, getStatisticsTrades } from "@/lib/tradingStatistics";
 import PnlChart from "@/components/portal/PnlChart";
 import { btnPrimary, Card, cx, EmptyState, FormMessage, LoadState } from "@/components/portal/ui";
@@ -147,6 +156,113 @@ function ObjectiveCell({ o }: { o: { label: string; current: number; target: num
           )}
         </p>
       </div>
+    </div>
+  );
+}
+
+/* ── Trading rules (live rule-engine checks) ── */
+const RULE_TONE: Record<RuleCheck["status"], { icon: typeof CircleCheck; cls: string; label: string }> = {
+  passed: { icon: CircleCheck, cls: "text-success", label: "Passed" },
+  pending: { icon: CircleDashed, cls: "text-muted", label: "Pending" },
+  warning: { icon: AlertTriangle, cls: "text-warning", label: "Soft breach" },
+  failed: { icon: CircleX, cls: "text-danger", label: "Breached" },
+};
+
+function RulesCard({ checks, legacy }: { checks: RuleCheck[]; legacy: boolean }) {
+  const failed = checks.filter((c) => c.status === "failed").length;
+  const warned = checks.filter((c) => c.status === "warning").length;
+  return (
+    <div className={cx(card, "p-5")}>
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-[16px] leading-5 font-semibold text-ink">Trading Rules</h2>
+          <p className="text-[14px] text-muted">
+            {failed ? `${failed} hard breach${failed > 1 ? "es" : ""}` : warned ? `${warned} soft breach${warned > 1 ? "es" : ""}` : "All checked rules respected"}
+            {legacy && " · legacy rulebook"}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2 text-[11px] font-medium text-muted">
+          <span className="rounded-md bg-danger/10 px-1.5 py-0.5 text-danger">Hard = account closed</span>
+          <span className="rounded-md bg-warning/15 px-1.5 py-0.5 text-ink">Soft = profit removed / payout held</span>
+        </div>
+      </div>
+      {checks.length ? (
+        <ul className="divide-y divide-line">
+          {checks.map((c) => {
+            const t = RULE_TONE[c.status];
+            return (
+              <li key={c.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+                <t.icon className={cx("mt-0.5 size-[18px] shrink-0", t.cls)} aria-label={t.label} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[14px] leading-5 font-semibold text-ink">{c.label}</p>
+                    {c.severity && c.severity !== "info" && (
+                      <span className={cx("rounded px-1.5 text-[10.5px] font-semibold uppercase tracking-wide", c.severity === "hard" ? "bg-danger/10 text-danger" : "bg-warning/15 text-ink-2")}>
+                        {c.severity}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 text-[13px] leading-5 break-words text-ink-2">{c.info}</p>
+                </div>
+                <span className={cx("hidden shrink-0 text-[12px] font-medium sm:block", t.cls)}>{t.label}</span>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="text-[14px] text-muted">Rule checks appear once the account&apos;s statistics are synced.</p>
+      )}
+    </div>
+  );
+}
+
+/** Time left until the next 00:00 UTC reset — the dashboard timer is the reference for every daily rule. */
+function useUtcResetCountdown() {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const d = new Date(now);
+  const next = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1);
+  const s = Math.max(0, Math.floor((next - now) / 1000));
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+}
+
+function RuleFacts({ rules, model, phase }: { rules: AccountRules; model: string; phase: string }) {
+  const countdown = useUtcResetCountdown();
+  const flex = model === "Flex";
+  const overnightBanned = !flex && !rules.legacy;
+  const rows: { icon: typeof Timer; k: string; v: string; hint?: string }[] = [
+    { icon: Timer, k: "Daily reset (00:00 UTC)", v: countdown, hint: overnightBanned ? "Close every trade before the reset" : "Daily drawdown and Winning Days reset" },
+    ...(rules.minDays > 0
+      ? [{ icon: CalendarCheck, k: `${flex && phase === "Funded" ? "Profitable" : "Winning"} Days`, v: `${Math.min(rules.winningDays, rules.minDays)} / ${rules.minDays}`, hint: `Each day ≥ ${money(rules.winningDayThreshold, 0)}${rules.cycleStart ? " · since last payout" : ""}` }]
+      : []),
+    { icon: Shield, k: rules.trailing ? "Loss floor (trailing)" : "Loss floor", v: money(rules.lossFloor, 0), hint: "Balance and equity must stay above it" },
+    ...(rules.inactivityDaysLeft !== null
+      ? [{ icon: Clock, k: "Inactivity", v: `${rules.inactivityDaysLeft} days left`, hint: rules.lastTradeAt ? `Last trade ${fmtDate(rules.lastTradeAt)}` : "No trade yet" }]
+      : []),
+    ...(rules.scaling
+      ? [{ icon: TrendingUp, k: "Scaling plan", v: `${rules.scaling.payoutsTowardNext} / ${SCALING_PAYOUTS_PER_STEP} payouts`, hint: `+${SCALING_INCREASE_PERCENT}% of size → ${money(rules.scaling.nextScaledSize, 0)}` }]
+      : []),
+    { icon: BarChart3, k: "Leverage", v: `1:${LEVERAGE_LIMIT}` },
+  ];
+  return (
+    <div className={cx(card, "p-4")}>
+      <p className="px-1 pb-2 text-[13px] font-medium text-muted">Rule tracker</p>
+      {rows.map((r) => (
+        <div key={r.k} className="flex items-start justify-between gap-3 border-b border-line px-1 py-3 last:border-0 last:pb-1">
+          <span className="flex items-start gap-2">
+            <r.icon className="mt-0.5 size-4 shrink-0 text-brand-strong" />
+            <span>
+              <span className="block text-[13px] leading-5 font-medium text-ink-2">{r.k}</span>
+              {r.hint && <span className="block text-[12px] leading-4 text-muted">{r.hint}</span>}
+            </span>
+          </span>
+          <span className="shrink-0 text-[13px] font-semibold tabular-nums text-ink">{r.v}</span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -576,8 +692,19 @@ export default function AccountDetailsView({ id }: { id: string }) {
 
   const pnl = a.balance - a.size;
   const floating = a.equity - a.balance;
+  // The engine stores the failing rule as { title, message }; older rows stored a string.
   const breachRaw = a.raw.statisticsPayload?._range4exCompliance?.breachReason;
-  const breach = typeof breachRaw === "string" ? breachRaw : "";
+  const breachAlert = a.rules.alerts.find((x) => x.type === "error");
+  const breach =
+    typeof breachRaw === "string"
+      ? breachRaw
+      : breachRaw?.title
+        ? `${breachRaw.title} — ${breachRaw.message}`
+        : breachAlert
+          ? `${breachAlert.title} — ${breachAlert.message}`
+          : "";
+  const softBreaches = a.rules.alerts.filter((x) => x.type === "warning");
+  const flexPassed = a.model === "Flex" && a.status === "Passed";
   const started = fmtDate(a.raw.deliveredAt || a.raw.createdAt);
   const curve = range === "all" ? history.curve : history.curve.slice(-Number(range) - 1);
 
@@ -631,7 +758,7 @@ export default function AccountDetailsView({ id }: { id: string }) {
             </div>
             <div className="flex flex-col items-start justify-between gap-3 self-stretch md:items-end md:gap-5">
               <div className="flex flex-wrap gap-2">
-                {a.raw.status === "Passed" && (
+                {a.raw.status === "Passed" && !flexPassed && (
                   <button type="button" onClick={requestNext} disabled={requesting} className={cx(btnPrimary, "h-[30px] rounded-md px-3.5")}>
                     {requesting ? "Requesting…" : a.model === "Two Step" && a.phase === "Phase 1" ? "Request Phase 2" : "Request funded account"} <ArrowRight size={16} />
                   </button>
@@ -647,11 +774,28 @@ export default function AccountDetailsView({ id }: { id: string }) {
               </p>
             </div>
           </div>
-          {(nextMsg || a.pendingDelivery || (breach && a.status === "Breached")) && (
+          {(nextMsg || a.pendingDelivery || a.status === "Breached" || flexPassed || softBreaches.length > 0) && (
             <div className="mt-4 space-y-2">
               {nextMsg && <FormMessage tone={nextMsg.tone}>{nextMsg.text}</FormMessage>}
               {a.pendingDelivery && <FormMessage tone="info">Your login details are being prepared. We&apos;ll email them to you and show them here as soon as they&apos;re ready.</FormMessage>}
-              {breach && a.status === "Breached" && <FormMessage tone="error">Breach reason: {breach}</FormMessage>}
+              {a.status === "Breached" && (
+                <FormMessage tone="error">
+                  {breach ? <>Breach reason: {breach}</> : "This account breached a hard rule and is closed."} You can appeal within {BREACH_APPEAL_WINDOW_DAYS} days of the notice by
+                  support ticket, with your account number, the trade tickets and your evidence.
+                </FormMessage>
+              )}
+              {flexPassed && (
+                <FormMessage tone="success">
+                  Flex evaluation passed. Pay the activation fee within {FLEX_ACTIVATION_WINDOW_HOURS} hours to receive your funded MT5 login — after that the
+                  activation option expires.
+                </FormMessage>
+              )}
+              {a.status !== "Breached" &&
+                softBreaches.map((s) => (
+                  <FormMessage key={s.id} tone="warning">
+                    <strong>{s.title}:</strong> {s.message}
+                  </FormMessage>
+                ))}
             </div>
           )}
         </div>
@@ -703,6 +847,11 @@ export default function AccountDetailsView({ id }: { id: string }) {
                 </div>
               </div>
             </div>
+            {!a.pendingDelivery && (
+              <div className="mt-4 lg:mt-6">
+                <RuleFacts rules={a.rules} model={a.model} phase={a.phase} />
+              </div>
+            )}
           </div>
 
           <div className="order-2 flex min-w-0 flex-1 flex-col gap-4 lg:order-1 lg:gap-6">
@@ -760,6 +909,8 @@ export default function AccountDetailsView({ id }: { id: string }) {
                 <p className="flex h-[280px] items-center justify-center text-[14px] text-muted">No data available</p>
               )}
             </div>
+
+            {!a.pendingDelivery && <RulesCard checks={a.rules.checks} legacy={a.rules.legacy} />}
           </div>
         </div>
       )}

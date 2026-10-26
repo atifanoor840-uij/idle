@@ -7,7 +7,7 @@ export type User = {
   role: Role; status: "active" | "suspended" | "banned";
   emailVerified?: boolean; referredBy?: string; createdAt: string;
 };
-export type PlanModel = "One Step" | "Two Step" | "Instant";
+export type PlanModel = "One Step" | "Two Step" | "Instant" | "Flex";
 export type PricingPlan = { id: string; model: PlanModel; size: number; price: number; status: string };
 export type Order = {
   id: string; userId: string; planId: string; couponUsed: string; amountPaid: number;
