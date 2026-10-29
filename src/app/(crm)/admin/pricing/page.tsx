@@ -3,17 +3,20 @@ import { useState, type FormEvent } from "react";
 import { money } from "@/lib/mock";
 import { crm } from "@/lib/crmApi";
 import type { PlanModel, PricingPlan } from "@/lib/propApi";
+import { FLEX_DEFAULT_UPFRONT_PRICE } from "@/lib/rulebook";
 import { btnPrimary, Card, cx, FormMessage, LoadState } from "@/components/portal/ui";
 import { Badge, Field, inputCls, PageHeader, tableWrap, tdCls, thCls, trCls } from "@/components/portal/kit";
 import { ConfirmAction, dangerLink, errMsg, linkBtn, useAdmin } from "@/components/crm/kit";
 
-const MODELS: PlanModel[] = ["Two Step", "One Step", "Instant"];
+const MODELS: PlanModel[] = ["Two Step", "One Step", "Instant", "Flex"];
 const k = (n: number) => (n >= 1_000_000 ? `$${n / 1_000_000}M` : `$${n / 1000}K`);
 const isActive = (p: PricingPlan) => String(p.status || "active").toLowerCase() === "active";
+const upfrontOf = (p: PricingPlan) => (p.model === "Flex" ? Number(p.upfrontPrice ?? FLEX_DEFAULT_UPFRONT_PRICE) : undefined);
 
 export default function PricingAdmin() {
   const { data, error, loading, reload } = useAdmin(() => crm.pricing.list());
-  const [f, setF] = useState({ model: "Two Step" as PlanModel, size: "", price: "", status: "active" });
+  const [f, setF] = useState({ model: "Two Step" as PlanModel, size: "", price: "", upfront: String(FLEX_DEFAULT_UPFRONT_PRICE), status: "active" });
+  const isFlex = f.model === "Flex";
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const [del, setDel] = useState<PricingPlan | null>(null);
@@ -25,12 +28,15 @@ export default function PricingAdmin() {
     e.preventDefault();
     const size = Number(f.size);
     const price = Number(f.price);
+    const upfront = Number(f.upfront);
     if (!(size >= 1000) || !(price > 0)) return setMsg({ tone: "error", text: "Enter an account size (e.g. 100000) and a price above 0." });
+    if (isFlex && !(upfront > 0 && upfront < price)) return setMsg({ tone: "error", text: "The upfront amount must be above 0 and below the real price." });
     setBusy(true);
     setMsg(null);
     try {
-      await crm.pricing.save({ model: f.model, size, price, status: f.status });
-      setMsg({ tone: "success", text: `${existing ? "Updated" : "Added"} ${f.model} ${k(size)} at ${money(price)}. The website and checkout update within a minute.` });
+      await crm.pricing.save({ model: f.model, size, price, upfrontPrice: isFlex ? upfront : undefined, status: f.status });
+      const priced = isFlex ? `${money(upfront)} upfront + ${money(price - upfront)} after passing (real price ${money(price)})` : money(price);
+      setMsg({ tone: "success", text: `${existing ? "Updated" : "Added"} ${f.model} ${k(size)} at ${priced}. The website and checkout update within a minute.` });
       setF({ ...f, size: "", price: "" });
       reload();
     } catch (e) {
@@ -43,7 +49,7 @@ export default function PricingAdmin() {
   const toggle = async (p: PricingPlan) => {
     setMsg(null);
     try {
-      await crm.pricing.save({ model: p.model, size: Number(p.size), price: Number(p.price), status: isActive(p) ? "inactive" : "active" });
+      await crm.pricing.save({ model: p.model, size: Number(p.size), price: Number(p.price), upfrontPrice: upfrontOf(p), status: isActive(p) ? "inactive" : "active" });
       reload();
     } catch (e) {
       setMsg({ tone: "error", text: errMsg(e) });
@@ -54,7 +60,7 @@ export default function PricingAdmin() {
     <div className="space-y-5">
       <PageHeader title="Pricing" sub="The live catalog. The website, the buy page and checkout all read these prices." />
       <Card title="Add or update a plan">
-        <form onSubmit={save} className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <form onSubmit={save} className={cx("grid items-end gap-4 sm:grid-cols-2", isFlex ? "lg:grid-cols-6" : "lg:grid-cols-5")}>
           <Field label="Model">
             <select className={inputCls} value={f.model} onChange={(e) => setF({ ...f, model: e.target.value as PlanModel })}>
               {MODELS.map((m) => (
@@ -65,7 +71,12 @@ export default function PricingAdmin() {
           <Field label="Account size (USD)">
             <input className={inputCls} type="number" min={1000} step={1000} value={f.size} onChange={(e) => setF({ ...f, size: e.target.value })} placeholder="100000" />
           </Field>
-          <Field label="Price (USD)" hint={existing ? `Current: ${money(existing.price)}` : undefined}>
+          {isFlex && (
+            <Field label="Paying price (USD)" hint={existing ? `Current: ${money(upfrontOf(existing) ?? 0)}` : "User pays this now, e.g. 9"}>
+              <input className={inputCls} type="number" min={1} step="0.01" value={f.upfront} onChange={(e) => setF({ ...f, upfront: e.target.value })} />
+            </Field>
+          )}
+          <Field label={isFlex ? "Real price (USD)" : "Price (USD)"} hint={existing ? `Current: ${money(existing.price)}` : isFlex ? "Coupons apply to this" : undefined}>
             <input className={inputCls} type="number" min={1} step="0.01" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
           </Field>
           <Field label="Status">
@@ -109,6 +120,11 @@ export default function PricingAdmin() {
                       <td className={cx(tdCls, "text-right font-semibold", odd ? "text-danger" : "text-ink")}>
                         {money(Number(p.price))}
                         {odd && <span className="block text-[11.5px] font-normal">Cheaper than the smaller size</span>}
+                        {p.model === "Flex" && (
+                          <span className="block text-[11.5px] font-normal text-muted">
+                            {money(upfrontOf(p) ?? 0)} upfront + {money(Number(p.price) - (upfrontOf(p) ?? 0))} after passing
+                          </span>
+                        )}
                       </td>
                       <td className={cx(tdCls, "text-right text-muted")}>{money(per)}</td>
                       <td className={tdCls}>
@@ -116,7 +132,7 @@ export default function PricingAdmin() {
                       </td>
                       <td className={tdCls}>
                         <div className="flex items-center gap-3">
-                          <button type="button" className={linkBtn} onClick={() => setF({ model: p.model, size: String(p.size), price: String(p.price), status: isActive(p) ? "active" : "inactive" })}>
+                          <button type="button" className={linkBtn} onClick={() => setF({ model: p.model, size: String(p.size), price: String(p.price), upfront: String(upfrontOf(p) ?? FLEX_DEFAULT_UPFRONT_PRICE), status: isActive(p) ? "active" : "inactive" })}>
                             Edit
                           </button>
                           <button type="button" className={linkBtn} onClick={() => toggle(p)}>

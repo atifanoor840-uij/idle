@@ -5,19 +5,20 @@ import { recordCollaboratorSale } from "@/lib/collaborators";
 import { detectCountry } from "@/lib/geo";
 import { sendMetaConversionEvent } from "@/lib/metaConversionsApi";
 import { grantBogoOffersForOrder } from "@/lib/offerGrants";
-import { getOrderPlatform, notifyCredentialsDelivered, reserveInventoryAccount, saveNewAccount } from "@/lib/orderFulfillment";
+import { fulfillFlexActivation, getOrderPlatform, notifyCredentialsDelivered, reserveInventoryAccount, saveNewAccount } from "@/lib/orderFulfillment";
 
 import {
   PHASE_FUNDED,
   PHASE_ONE,
   PHASE_TWO,
+  awaitingFlexActivation,
   getNextStagePhase,
   getOrderStatusForPhase,
   getStageAccountStatus,
   getStageProfitTarget,
   planSupportsPhase,
 } from "@/lib/challengeStages";
-import { applyAddons, applyWeekendHoldingAddon } from "@/lib/rulebook";
+import { applyAddons, applyWeekendHoldingAddon, flexPriceSplit, getChallengeRule } from "@/lib/rulebook";
 import { readSessionUserId } from "@/lib/session";
 
 async function getSessionUser() {
@@ -134,11 +135,16 @@ export async function POST(request: Request) {
     // the Buy page). challenge_plans holds a copy made on the first order and
     // goes stale once the admin edits the price.
     const catalogPrice = Number(catalogPlan.price);
-    let basePrice = applyAddons(catalogPrice, { weekendHolding: weekendHoldingAddon, overnightHolding: overnightHoldingAddon });
+    // Flex already allows overnight and weekend holding, so it takes no add-ons.
+    const isFlex = getChallengeRule(catalogPlan.model).key === "flex";
+    let basePrice = isFlex
+      ? catalogPrice
+      : applyAddons(catalogPrice, { weekendHolding: weekendHoldingAddon, overnightHolding: overnightHoldingAddon });
     let discountPercent = 0;
     let isAffiliateRef = false;
     let affiliateUserId = "";
     let commissionAmount = 0;
+    let affiliateRate = 0;
 
     if (couponUsed) {
       const normalizedCoupon = couponUsed.trim().toUpperCase();
@@ -158,12 +164,21 @@ export async function POST(request: Request) {
         isAffiliateRef = true;
         affiliateUserId = affiliate.userId;
         // Affiliate gets percentage commission on final price
+        affiliateRate = affiliate.commissionRate;
         commissionAmount = (basePrice * 0.9) * (affiliate.commissionRate / 100);
       }
     }
 
+    // Flex: the coupon comes off the real price only. The upfront fee is charged
+    // now; the discounted remainder is the activation fee due after passing.
+    const flex = isFlex ? flexPriceSplit(catalogPrice, catalogPlan.upfrontPrice, discountPercent) : null;
+    if (flex && isAffiliateRef) {
+      // Commission is earned on what is paid now; the activation payment earns its own.
+      commissionAmount = flex.upfront * (affiliateRate / 100);
+    }
+
     const discountAmount = basePrice * (discountPercent / 100);
-    const finalPrice = Math.ceil(basePrice - discountAmount);
+    const finalPrice = flex ? flex.upfront : Math.ceil(basePrice - discountAmount);
 
     let appliedReferralBalance = 0;
     if (useReferralBalance) {
@@ -203,8 +218,9 @@ export async function POST(request: Request) {
       couponUsed: couponUsed || "",
       amountPaid: amountToPay,
       referralBalanceApplied: appliedReferralBalance,
-      weekendHoldingAddon,
-      overnightHoldingAddon,
+      weekendHoldingAddon: isFlex ? false : weekendHoldingAddon,
+      overnightHoldingAddon: isFlex ? false : overnightHoldingAddon,
+      ...(flex ? { activationFee: flex.activationFee } : {}),
       paymentMethod: paymentMethod || "Credit Card",
       status: "Pending", // Pending until payment approved
       gatewayRef: "gway_" + Math.random().toString(36).substring(2, 10),
@@ -322,6 +338,23 @@ export async function PUT(request: Request) {
     const order = await db.getOrderById(orderId);
     if (!order) {
       return NextResponse.json({ error: "Order not found." }, { status: 404 });
+    }
+
+    // Approving a Flex activation payment (e.g. manual crypto) issues the funded
+    // account for the Flex order it pays; it never opens a new evaluation.
+    if (order.parentOrderId && (status === "Active" || status.toLowerCase() === "paid")) {
+      await fulfillFlexActivation(order);
+      await db.saveAuditLog({
+        id: "log-" + Math.random().toString(36).substring(2, 11),
+        userId: admin.id,
+        userName: admin.name,
+        targetId: order.id,
+        targetType: "order",
+        action: "order_status_update",
+        description: `Admin approved Flex activation Order ${order.id} for Order ${order.parentOrderId}`,
+        createdAt: new Date().toISOString(),
+      });
+      return NextResponse.json({ success: true, order: await db.getOrderById(order.id) });
     }
 
     const plan = await db.getPlanById(order.planId);
@@ -586,7 +619,8 @@ export async function PUT(request: Request) {
 
         // Auto-progress order if account status is marked as Passed (similar to api/accounts route).
         // One Step and Instant plans skip Phase 2 and go straight to Funded (Live).
-        const nextPhase = oldStatus !== "Passed" ? getNextStagePhase(planName, latestAcc.phase) : null;
+        // A passed Flex evaluation waits for the activation fee before it is funded.
+        const nextPhase = oldStatus !== "Passed" && !awaitingFlexActivation(order) ? getNextStagePhase(planName, latestAcc.phase) : null;
         if (nextPhase) {
           order.status = getOrderStatusForPhase(nextPhase);
           order.updatedAt = new Date().toISOString();

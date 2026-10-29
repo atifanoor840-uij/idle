@@ -5,7 +5,7 @@
 export const site = {
   name: "Idle4ex",
   wordmark: "IDLE4EX",
-  tagline: ["Educational trading", "evaluation"],
+  tagline: ["Prop Firm Evaluation", "Skill-Based Trading Challenges"],
   company: "Idle4ex Ltd.",
   year: 2026,
 
@@ -18,7 +18,7 @@ export const site = {
     contact: "/contact",
   },
 
-  promo: { text: "Instant Simulated Accounts are live", href: "/pricing#instant" },
+  promo: { text: "Simulated Accounts & Forex Evaluation Programs Live", href: "/pricing" },
   sponsorship: { text: "Sponsorship", href: "#" },
 
   nav: [
@@ -38,51 +38,63 @@ export const site = {
 
   heroSlides: [
     {
-      title: "Trade **Simulated Capital**.\nKeep Up To **90%**.",
-      sub: "Pass one simple evaluation and trade up to $200K in a realistic simulated environment.",
+      title: "Proven Discipline.\n**Prop Firm Evaluation**.",
+      sub: "Take our trading challenge, prove your consistency on simulated accounts, and earn access to a funded account upon successful evaluation.",
     },
     {
-      title: "Rewarded Every\n**14 Days**.",
-      sub: "Withdraw up to 6% of your simulated account size each period once you are verified.",
+      title: "Get Funded As A Trader\nWith **Simulated Accounts**.",
+      sub: "Experience a realistic forex evaluation program with transparent drawdown rules and up to 90% performance rewards.",
     },
     {
-      title: "Rules You Can\n**Actually Read**.",
-      sub: "No hidden clauses. Every limit our evaluation system enforces is published on one page.",
+      title: "Skill-Based Programs.\n**Zero Hidden Rules**.",
+      sub: "Straightforward trading evaluations with 4% daily and 6% static loss limits, designed for educational purposes and long-term trader growth.",
     },
   ],
 
   heroStats: [
-    { num: "90%", lbl: "Reward split" },
-    { num: "$200K", lbl: "Max simulated size" },
+    { num: "Up to 90%", lbl: "Performance reward" },
+    { num: "$200K", lbl: "Simulated account size" },
     { num: "14-Day", lbl: "Reward cycle" },
-    { num: "2 Step / 1 Step", lbl: "Evaluation" },
-    { num: "24/7", lbl: "Support" },
+    { num: "1-Step & 2-Step", lbl: "Trading challenges" },
+    { num: "24/7", lbl: "Trader support" },
   ],
 
   quoteBand: {
-    title: "Real Market Conditions",
-    text: "Practice and prove your edge on live-feed market prices with raw spreads in a simulated environment — the exact same conditions across every evaluation stage.",
+    title: "Realistic Market Conditions in Simulated Accounts",
+    text: "Test and execute your edge using live-feed pricing and raw virtual spreads. Our skill-based programs provide a consistent, professional trading evaluation across every phase.",
   },
 
   feature: {
     ghost: "90",
-    title: "Reward split\nup to **90%**",
-    items: ["80% on your first performance reward", "85% on the second, 90% from the third"],
-    cta: "View Challenges",
+    title: "Performance rewards\nup to **90%**",
+    items: [
+      "80% on your first performance reward",
+      "85% on the second, 90% from the third onward",
+      "Access to a funded account upon successful evaluation",
+    ],
+    cta: "Explore Trading Challenges",
   },
   featureHalf: [
     {
       icon: "wallet",
-      title: "Fast Rewards",
-      items: ["Request every 14 days", "Up to 6% of simulated account size per period", "Reviewed by a real person"],
-      cta: "Payout Policy",
+      title: "Bi-Weekly Reward Cycles",
+      items: [
+        "Request performance rewards every 14 days",
+        "Up to 6% of simulated account size per period",
+        "Reviewed promptly by our compliance team",
+      ],
+      cta: "View Payout Policy",
       href: "/payout-policy",
     },
     {
       icon: "timer",
-      title: "Transparent Rules",
-      items: ["No time limits on evaluation", "News trading free during evaluation", "One-page rulebook"],
-      cta: "Read the Rules",
+      title: "Transparent Evaluation Rules",
+      items: [
+        "No time limits on your trading challenge",
+        "News trading permitted during evaluation stages",
+        "Real-time rule tracking on your trader dashboard",
+      ],
+      cta: "Read Trading Rules",
       href: "/rules",
     },
   ],
@@ -92,8 +104,8 @@ export const site = {
       { num: "< 24h", lbl: "Average review time" },
       { pre: "Excellent", num: "4.8/5", lbl: "Average trader rating" },
     ],
-    title: "Reviewed Fast.\nProven Daily.",
-    text: "Every reward request is reviewed by a real person and processed the same day. Our traders rate Idle4ex on speed, transparency and support — not marketing.",
+    title: "Evaluated Promptly.\nBuilt For Disciplined Traders.",
+    text: "Every milestone in our prop firm evaluation is processed transparently and without delays. Disciplined traders choose Idle4ex for reliable simulated accounts, clear rules, and dedicated 24/7 support.",
   },
 
   platforms: ["MetaTrader 5", "MetaTrader 4", "cTrader"],
@@ -102,8 +114,8 @@ export const site = {
   markets: ["Forex", "Commodities", "Indices", "Stocks", "Crypto", "Metals", "Futures"],
 
   numbers: {
-    title: "Your Split Grows\nTo **90%**",
-    text: "Every payout on the same simulated account raises your share: 80% on the first, 85% on the second and 90% from the third onward.",
+    title: "Your Reward Split Grows\nTo **90%**",
+    text: "Each consecutive reward cycle on your simulated funded account unlocks a higher tier: 80% on the first payout, 85% on the second, and 90% from the third onward.",
     stats: [
       { num: "$12.4M+", lbl: "Rewards paid out" },
       { num: "38,000+", lbl: "Evaluated traders" },
@@ -111,7 +123,7 @@ export const site = {
   },
 
   payouts: {
-    title: "Your Rewards, Your Way",
+    title: "Performance Rewards, Paid Your Way",
     items: ["Crypto (USDT TRC20)", "Bank Transfer"],
     note: "Minimum payout $100.",
     noteLink: "See payout rules",
@@ -119,27 +131,43 @@ export const site = {
   payments: ["VISA", "Mastercard", "Apple Pay", "Google Pay", "Bitcoin", "USDT"],
 
   steps: [
-    { title: "Choose Challenge", text: "Pick a simulated account size from $5K to $200K and a 1-Step or 2-Step model." },
-    { title: "Pass Evaluation", text: "Hit the simulated profit target while respecting daily and max drawdown rules." },
-    { title: "Get Verified", text: "Complete the evaluation and receive your simulated funded-stage account login by email." },
-    { title: "Earn Rewards", text: "Verify your identity once, then request up to 90% of your simulated gains every 14 days." },
+    {
+      title: "Choose Your Trading Challenge",
+      text: "Select a simulated account size from $5K to $200K and choose between our 1-Step or 2-Step forex evaluation program.",
+    },
+    {
+      title: "Pass the Trading Evaluation",
+      text: "Reach the simulated profit target while maintaining risk within daily and maximum loss limits.",
+    },
+    {
+      title: "Get Funded as a Trader",
+      text: "Complete your evaluation objectives to receive access to a funded account in our simulated environment.",
+    },
+    {
+      title: "Earn Performance Rewards",
+      text: "Demonstrate consistent strategy and request up to 90% performance rewards every 14 calendar days.",
+    },
   ],
 
   app: {
-    title: "Your Account,\nIn Your Pocket",
-    items: ["Live drawdown & target tracking", "Instant reward notifications", "Manage every simulated account in one place"],
+    title: "Your Trading Evaluation,\nIn Your Pocket",
+    items: [
+      "Live drawdown & simulated profit target tracking",
+      "Instant notifications on rule checks and milestones",
+      "Manage every simulated account in one unified portal",
+    ],
   },
 
-  banner: { text: "Join 20,000+ traders on the Idle4ex Discord — educational sessions every week.", cta: "Join Discord" },
+  banner: { text: "Join 20,000+ traders on the Idle4ex Discord — educational sessions and trading challenge insights every week.", cta: "Join Discord" },
 
   finalCta: {
-    title: "Ready To Start Your Evaluation?",
-    sub: "Pick a simulated account size, pass the evaluation, and earn performance rewards.",
+    title: "Ready to Get Funded as a Trader?",
+    sub: "Choose your simulated account size, pass the trading challenge, and earn access to a funded account upon successful evaluation.",
   },
 
   footer: {
     mission:
-      "Idle4ex is an educational and trader evaluation platform. We provide disciplined traders with simulated accounts in a realistic market environment and reward proven skill with clear, transparent rules.",
+      "Idle4ex delivers premier skill-based programs and trading evaluations for educational purposes. We provide disciplined traders with simulated accounts in a realistic market setting, offering clear guidelines and access to a funded account upon successful evaluation.",
     social: [
       { icon: "x", href: "#", label: "X" },
       { icon: "instagram", href: "#", label: "Instagram" },
@@ -177,10 +205,10 @@ export const site = {
       },
     ],
     educationalDisclaimer:
-      "Idle4ex is strictly an educational and trader skill-evaluation platform. All trading accounts, challenges, and funded-stage accounts provided to users are demo accounts with virtual, simulated funds operating exclusively in a simulated trading environment — NOT real capital. No user trades are executed in live financial markets, and Idle4ex does not act as a broker, dealer, financial advisor, or asset manager.",
+      "Idle4ex operates strictly as an educational platform providing simulated accounts and trader evaluation programs. All trading challenges, evaluation stages, and funded-stage simulated accounts feature virtual funds in a simulated environment — not real capital. Idle4ex does not provide financial advice, asset management, or trading execution in real-money markets.",
     riskWarning:
-      "All trading activity on Idle4ex takes place in a simulated environment for educational and evaluation purposes only. Market quotes and price feeds are used solely to simulate market conditions. Any fees paid are for access to our educational evaluation platform and simulated trading infrastructure, not client deposits or investments. Past simulated performance is not indicative of future results, and nothing on this platform constitutes financial, investment, legal, or tax advice.",
+      "All trading activity on Idle4ex is conducted on simulated accounts for educational purposes and skill evaluation only. Price feeds simulate market conditions. Fees represent access to our proprietary evaluation systems and simulated trading infrastructure, not deposits or capital allocations. Past simulated performance is not indicative of future results, and nothing on this platform constitutes personalized financial, legal, or tax advice.",
     restricted:
-      "Idle4ex does not offer simulated evaluation services to residents of jurisdictions where such services would be contrary to local law or regulation. See our Terms of Service for the full list.",
+      "Idle4ex does not offer simulated evaluation programs to residents of jurisdictions where such skill-based evaluations are contrary to local laws or regulations. See our Terms of Service for complete details.",
   },
 };

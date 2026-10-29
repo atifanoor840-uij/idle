@@ -3,14 +3,19 @@ import { site } from "@/site.config";
 import { faq } from "@/content.config";
 
 export const metadata = {
-  title: `FAQ — ${site.name}`,
-  description: `Answers to common questions about ${site.name} challenges, rules, payouts and platforms.`,
+  title: `Frequently Asked Questions — Trading Challenges & Evaluations | ${site.name}`,
+  description: `Find answers about ${site.name} trading challenges, simulated account sizes, drawdown rules, bi-weekly performance rewards, and evaluation guidelines.`,
 };
 
 export default function FaqPage() {
   return (
     <PageShell>
-      <PageHero eyebrow="FAQ" title={"Questions,\n**Answered**."} sub="Can’t find what you need? Our team is on live chat 24/7." seed={5} />
+      <PageHero
+        eyebrow="Trader Knowledge Base"
+        title={"Trading Challenge & **Evaluation FAQs**."}
+        sub="Everything you need to know about our skill-based programs, simulated accounts, and evaluation criteria."
+        seed={5}
+      />
       <section className="section">
         <div className="container faq">
           {faq.map((c) => (
@@ -25,9 +30,9 @@ export default function FaqPage() {
             </div>
           ))}
           <div className="banner" data-reveal>
-            <p>Still have a question?</p>
+            <p>Still have questions about our prop firm evaluation?</p>
             <a href={site.links.contact} className="btn btn-outline">
-              Contact Us
+              Contact Trader Support
             </a>
           </div>
         </div>

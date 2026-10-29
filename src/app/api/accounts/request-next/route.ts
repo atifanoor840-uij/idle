@@ -5,6 +5,7 @@ import { reserveInventoryAccount, saveNewAccount } from "@/lib/orderFulfillment"
 import {
   PHASE_FUNDED,
   PHASE_TWO,
+  awaitingFlexActivation,
   getNextStagePhase,
   getOrderStatusForPhase,
   getStageAccountStatus,
@@ -49,6 +50,13 @@ export async function POST(request: Request) {
     const order = await db.getOrderById(account.orderId);
     if (!order) {
       return NextResponse.json({ error: "Associated order not found." }, { status: 404 });
+    }
+
+    if (awaitingFlexActivation(order)) {
+      return NextResponse.json(
+        { error: `Pay the $${Number(order.activationFee).toFixed(2)} Flex activation fee to receive your funded account.` },
+        { status: 402 },
+      );
     }
 
     const plan = await db.getPlanById(order.planId);

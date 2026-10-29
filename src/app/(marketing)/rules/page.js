@@ -4,8 +4,8 @@ import { site } from "@/site.config";
 import { ALLOWED, CORE_RULES, LEVERAGE_LIMIT, PROHIBITED, PUBLIC_MODELS, RULE_ORDER } from "@/lib/publicRules";
 
 export const metadata = {
-  title: `Trading Rules — ${site.name}`,
-  description: `Every ${site.name} trading rule on one page: drawdown, profit targets, payouts and prohibited strategies.`,
+  title: `Trading Rules & Evaluation Guidelines — Prop Firm Challenge | ${site.name}`,
+  description: `Read the official ${site.name} trading evaluation rules: daily loss limits, maximum drawdown, profit targets, and permitted strategies for our skill-based programs.`,
 };
 
 function MarkList({ items, ok }) {
@@ -30,16 +30,16 @@ export default function RulesPage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="Trading Rules"
-        title={"Rules You Can\n**Actually Read**."}
-        sub="These are the exact limits our system enforces on your account — nothing more, nothing hidden."
+        eyebrow="Evaluation Rules & Guidelines"
+        title={"Clear Rules Built for\n**Disciplined Traders**."}
+        sub="Transparent parameters for our trading evaluations. Master these limits on simulated accounts to qualify for access to a funded account upon successful evaluation."
         seed={22}
       />
 
       <section className="section">
         <div className="container">
           <h2 className="h2 sub-h" data-reveal>
-            At a glance
+            Evaluation Rules at a Glance
           </h2>
           <div className="table-wrap" data-reveal>
             <table className="cmp">
@@ -63,14 +63,14 @@ export default function RulesPage() {
               </tbody>
             </table>
           </div>
-          <p className="note">&ldquo;Funded&rdquo; values apply once a 1-Step or 2-Step account passes the evaluation.</p>
+          <p className="note">&ldquo;Funded&rdquo; values apply once a 1-Step or 2-Step trading challenge passes the evaluation.</p>
         </div>
       </section>
 
       <section className="section section-top0">
         <div className="container">
           <h2 className="h2 sub-h" data-reveal>
-            Every rule explained
+            Evaluation Guidelines & Objectives Explained
           </h2>
           <div className="cards-3">
             {CORE_RULES.map((r) => (
@@ -87,11 +87,11 @@ export default function RulesPage() {
       <section className="section section-top0">
         <div className="container cards-2">
           <div className="card" data-reveal>
-            <h2 className="h2">Allowed</h2>
+            <h2 className="h2">Permitted Trading Strategies</h2>
             <MarkList items={ALLOWED} ok />
           </div>
           <div className="card card-dark" data-reveal>
-            <h2 className="h2">Not allowed</h2>
+            <h2 className="h2">Prohibited Trading Behaviors</h2>
             <MarkList items={PROHIBITED} />
           </div>
         </div>
@@ -100,10 +100,10 @@ export default function RulesPage() {
       <section className="section section-top0" id="instruments">
         <div className="container">
           <div className="card card-center" data-reveal>
-            <h2 className="h2">Leverage up to 1:{LEVERAGE_LIMIT}</h2>
+            <h2 className="h2">Simulated Leverage up to 1:{LEVERAGE_LIMIT}</h2>
             <p className="plan-blurb">
-              The same maximum leverage applies to every instrument on every account type. Forex, metals, indices, commodities and crypto
-              are available on your trading platform.
+              The same maximum simulated leverage applies to every instrument across all skill-based programs. Forex, metals, indices, commodities and crypto
+              are available on your simulated trading terminal.
             </p>
           </div>
         </div>

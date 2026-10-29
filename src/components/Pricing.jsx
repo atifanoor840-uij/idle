@@ -49,11 +49,11 @@ export default function Pricing({ models, showHeader = false }) {
       <div className="container">
         {showHeader && (
           <div className="pricing-head center" data-reveal>
-            <span className="eyebrow">Challenges &amp; Pricing</span>
+            <span className="eyebrow">Trading Challenge Pricing</span>
             <h2 className="h2 pricing-title">
-              <Rich text={"Pick Your **Challenge**.\nKeep Up To **90%**."} />
+              <Rich text={"Choose Your **Trading Challenge**.\nUnlock Up To **90%** Rewards."} />
             </h2>
-            <p className="pricing-sub">One-time fee, no subscriptions. Choose an evaluation model and an account size.</p>
+            <p className="pricing-sub">One-time evaluation fee, no monthly subscriptions. Pass the evaluation to earn access to a funded account upon successful evaluation.</p>
           </div>
         )}
         <div className="pricing-controls">

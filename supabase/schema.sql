@@ -75,12 +75,14 @@ alter table public.challenge_plans enable row level security;
 -- id format created by the API: "pp-<model-slug>-<size>k", e.g. pp-two-step-100k
 create table if not exists public.pricing_plans (
   id          text primary key,
-  model       text not null,                        -- One Step | Two Step | Instant
+  model       text not null,                        -- One Step | Two Step | Instant | Flex
   size        numeric not null,
-  price       numeric not null,
+  price       numeric not null,                     -- Flex: the real (full) price; coupons apply to this
+  "upfrontPrice" numeric,                           -- Flex only: paid at checkout, the rest is due after passing
   status      text not null default 'active',       -- active | inactive
   "createdAt" timestamptz default now()
 );
+alter table public.pricing_plans add column if not exists "upfrontPrice" numeric;
 alter table public.pricing_plans enable row level security;
 
 -- --------------------------------------------------- challenge_inventory
@@ -140,6 +142,10 @@ create table if not exists public.orders (
 alter table public.orders add column if not exists "referralBalanceApplied" numeric default 0;
 alter table public.orders add column if not exists "weekendHoldingAddon" boolean default false;
 alter table public.orders add column if not exists "legacyRules" boolean default false;
+-- Flex: "activationFee" is the balance still owed after the upfront payment. Paying it
+-- creates a second order whose "parentOrderId" points back to the Flex order.
+alter table public.orders add column if not exists "activationFee" numeric;
+alter table public.orders add column if not exists "parentOrderId" text;
 alter table public.orders enable row level security;
 
 -- ------------------------------------------------------ trading_accounts

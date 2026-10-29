@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { model, size, price, status } = body;
+    const { model, size, price, status, upfrontPrice } = body;
 
     if (!model || !size || !price) {
       return NextResponse.json({ error: "Model, size, and price are required." }, { status: 400 });
@@ -47,7 +47,17 @@ export async function POST(request: Request) {
 
     if (!BUY_CHALLENGE_TYPES.includes(model)) {
       return NextResponse.json(
-        { error: "Account type must be One Step, Two Step, or Instant." },
+        { error: "Account type must be One Step, Two Step, Instant, or Flex." },
+        { status: 400 },
+      );
+    }
+
+    // Flex rows carry two amounts: what the trader pays now and the real price.
+    const isFlex = getChallengeRule(model).key === "flex";
+    const upfront = Number(upfrontPrice);
+    if (isFlex && !(upfront > 0 && upfront < Number(price))) {
+      return NextResponse.json(
+        { error: "Flex needs an upfront amount above 0 and below the real price." },
         { status: 400 },
       );
     }
@@ -63,6 +73,7 @@ export async function POST(request: Request) {
       model: getChallengeRule(model).buyLabel,
       size: Number(size),
       price: Number(price),
+      upfrontPrice: isFlex ? upfront : null,
       status: status || "active",
     };
 

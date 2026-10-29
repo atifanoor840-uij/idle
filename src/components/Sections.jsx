@@ -98,7 +98,7 @@ export function PlatformsCard() {
       <div className="container">
         <div className="card card-2col" data-reveal>
           <div>
-            <h2 className="h2">Powerful Trading Terminals</h2>
+            <h2 className="h2">High-Performance Platforms for Your Trading Challenge</h2>
             <div className="platforms">
               {site.platforms.map((p) => (
                 <span className="platform-chip" key={p}>
@@ -108,7 +108,7 @@ export function PlatformsCard() {
             </div>
             <Checklist items={site.devices} bold className="cols-2" />
             <a href={site.links.platform} className="btn btn-grey">
-              Platforms
+              Explore Platforms
             </a>
           </div>
           <div className="devices">
@@ -129,7 +129,7 @@ export function MarketsCard() {
       <div className="container">
         <div className="card card-2col" data-reveal>
           <div>
-            <h2 className="h2">Trade Global Markets</h2>
+            <h2 className="h2">Trade Global Markets in a Simulated Environment</h2>
             <Checklist items={site.markets} bold className="cols-2" />
             <a href="/rules#instruments" className="btn btn-grey">
               View Instruments
@@ -162,10 +162,10 @@ export function NumbersBand() {
         <p className="p-dark dim">{n.text}</p>
         <div className="btn-row">
           <a href={site.links.start} className="btn btn-primary">
-            Start Challenge
+            Start Trading Challenge
           </a>
           <a href={site.links.trial || "/rules"} className="btn btn-outline">
-            {site.links.trial ? "Free Trial" : "Read the Rules"}
+            {site.links.trial ? "Free Trial" : "Read Evaluation Rules"}
           </a>
         </div>
       </div>
@@ -221,7 +221,7 @@ export function Steps() {
     <section className="section section-top0" id="steps">
       <div className="container center">
         <h2 className="h2" data-reveal>
-          Get funded in 4 simple steps
+          Get Funded as a Trader in 4 Evaluation Steps
         </h2>
         <div className="steps">
           {site.steps.map((s, i) => (
@@ -233,7 +233,7 @@ export function Steps() {
           ))}
         </div>
         <a href={site.links.start} className="btn btn-primary" data-reveal>
-          Start Challenge
+          Start Trading Challenge
         </a>
       </div>
     </section>
@@ -291,10 +291,10 @@ export function FinalCta() {
         <p className="final-sub">{f.sub}</p>
         <div className="btn-row center">
           <a href={site.links.start} className="btn btn-primary">
-            Get Started
+            Start Trading Challenge
           </a>
           <a href={site.links.trial || "/rules"} className="btn btn-outline">
-            {site.links.trial ? "Try a Free Trial" : "Read the Rules"}
+            {site.links.trial ? "Try a Free Trial" : "Read Evaluation Rules"}
           </a>
         </div>
       </div>

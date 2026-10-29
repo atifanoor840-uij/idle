@@ -33,7 +33,7 @@ export default function Hero() {
           ))}
         </div>
         <a href={site.links.start} className="btn btn-primary">
-          Start Challenge
+          Start Trading Challenge
         </a>
         <div className="dots" role="tablist">
           {slides.map((_, i) => (

@@ -1,5 +1,6 @@
 import AuthShell from "@/components/auth/AuthShell";
 import SignupForm from "@/components/auth/SignupForm";
+import MetaPixel from "@/components/MetaPixel";
 import { site } from "@/site.config";
 
 export const metadata = { title: `Create Account — ${site.name}`, robots: { index: false } };
@@ -20,6 +21,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
       }
     >
       <SignupForm referralCode={clean(sp.ref)} collaboratorCode={clean(sp.collab)} />
+      <MetaPixel />
     </AuthShell>
   );
 }

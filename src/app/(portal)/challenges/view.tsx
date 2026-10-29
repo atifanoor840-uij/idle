@@ -4,13 +4,14 @@ import { Check, ShieldCheck, Tag as TagIcon } from "lucide-react";
 import { money } from "@/lib/mock";
 import { api, ApiError, checkoutTotal, goToSignin, type PlanModel, type PricingPlan } from "@/lib/propApi";
 import { MODEL_LABEL, useApi } from "@/lib/portal-data";
-import { CHALLENGE_RULES, normalizeChallengeRuleKey, WEEKEND_HOLDING_ADDON_PERCENT, OVERNIGHT_HOLDING_ADDON_PERCENT } from "@/lib/rulebook";
+import { CHALLENGE_RULES, flexPriceSplit, normalizeChallengeRuleKey, WEEKEND_HOLDING_ADDON_PERCENT, OVERNIGHT_HOLDING_ADDON_PERCENT } from "@/lib/rulebook";
 import { MANUAL_CRYPTO_PAYMENT_METHOD, MANUAL_WALLETS } from "@/config/manualWallets";
+import { trackPixel } from "@/components/MetaPixel";
 import { btnPrimary, btnSecondary, Card, cx, FormMessage, LoadState } from "@/components/portal/ui";
 import { Field, inputCls, KV, PageHeader, Segmented, Tabs } from "@/components/portal/kit";
 
 const k = (n: number) => (n >= 1_000_000 ? `$${n / 1_000_000}M` : `$${n / 1000}K`);
-const MODEL_ORDER: PlanModel[] = ["Two Step", "One Step", "Instant"];
+const MODEL_ORDER: PlanModel[] = ["Two Step", "One Step", "Instant", "Flex"];
 const PLATFORMS = ["MT5", "MT4", "cTrader"] as const;
 const CARD = "Paddle";
 
@@ -64,10 +65,15 @@ export default function ChallengesView() {
   useEffect(() => setConfirmAmount(null), [plan?.id, weekend, overnight, coupon, payMethod]);
 
   const rule = CHALLENGE_RULES[normalizeChallengeRuleKey(model)];
-  const weekendFee = plan && weekend ? plan.price * (WEEKEND_HOLDING_ADDON_PERCENT / 100) : 0;
-  const overnightFee = plan && overnight ? plan.price * (OVERNIGHT_HOLDING_ADDON_PERCENT / 100) : 0;
+  // Flex: pay the upfront fee now, the rest after passing; it already allows overnight/weekend holding.
+  const isFlex = model === "Flex";
+  const flex = plan && isFlex ? flexPriceSplit(plan.price, plan.upfrontPrice, coupon?.pct) : null;
+  const weekendOn = weekend && !isFlex;
+  const overnightOn = overnight && !isFlex;
+  const weekendFee = plan && weekendOn ? plan.price * (WEEKEND_HOLDING_ADDON_PERCENT / 100) : 0;
+  const overnightFee = plan && overnightOn ? plan.price * (OVERNIGHT_HOLDING_ADDON_PERCENT / 100) : 0;
   const base = (plan?.price ?? 0) + weekendFee + overnightFee;
-  const total = plan ? checkoutTotal(plan.price, { weekendHoldingAddon: weekend, overnightHoldingAddon: overnight, discountPercent: coupon?.pct }) : 0;
+  const total = flex ? flex.upfront : plan ? checkoutTotal(plan.price, { weekendHoldingAddon: weekendOn, overnightHoldingAddon: overnightOn, discountPercent: coupon?.pct }) : 0;
 
   const applyCoupon = async () => {
     const c = code.trim().toUpperCase();
@@ -92,10 +98,11 @@ export default function ChallengesView() {
         planId: plan.id,
         paymentMethod: payMethod,
         couponUsed: coupon?.code || undefined,
-        weekendHoldingAddon: weekend,
-        overnightHoldingAddon: overnight,
+        weekendHoldingAddon: weekendOn,
+        overnightHoldingAddon: overnightOn,
         expectedAmount: confirmAmount ?? total,
       });
+      trackPixel("InitiateCheckout", { value: order.amountPaid, currency: "USD", content_ids: [plan.id], content_type: "product" }, `checkout_${order.id}`);
       window.location.href = `/pay?orderId=${encodeURIComponent(order.id)}&platform=${platform}`;
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) return goToSignin();
@@ -145,7 +152,7 @@ export default function ChallengesView() {
                 setPlanId("");
               }}
               render={(m) => MODEL_LABEL[m]}
-              cols="grid-cols-3"
+              cols={models.length > 3 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}
             />
 
             <h3 className="mb-3 mt-6 text-[13px] font-semibold uppercase tracking-wide text-muted">Account size</h3>
@@ -197,6 +204,12 @@ export default function ChallengesView() {
           )}
 
           {/* ── Customizations & Add-Ons ── */}
+          {isFlex ? (
+            <p className="mt-6 rounded-tile bg-brand-soft p-3 text-[12.5px] leading-relaxed text-ink-2">
+              Pay <strong className="text-ink">{money(flex?.upfront ?? 0)}</strong> now to start. Pass the evaluation, then pay the remaining{" "}
+              <strong className="text-ink">{money(flex?.activationFee ?? 0)}</strong> to receive your funded account. Overnight and weekend holding are included.
+            </p>
+          ) : (
           <div className="mt-6 space-y-2.5">
             <div className="flex items-center justify-between">
               <h3 className="text-[13px] font-semibold uppercase tracking-wider text-muted">
@@ -263,6 +276,7 @@ export default function ChallengesView() {
               </div>
             </label>
           </div>
+          )}
 
           <div className="mt-5">
             <Field label="Coupon or referral code" hint={coupon?.pct ? `${coupon.code}: ${coupon.pct}% off` : couponMsg}>
@@ -278,6 +292,16 @@ export default function ChallengesView() {
             </Field>
           </div>
 
+          {flex ? (
+          <div className="mt-6 space-y-2.5 rounded-tile bg-surface-2 p-4">
+            <KV k="Real price" v={money(flex.real)} />
+            {!!coupon?.pct && <KV k={`Discount (${coupon.code})`} v={<span className="text-success">-{money(flex.discount)}</span>} />}
+            <KV k="Due after passing" v={money(flex.activationFee)} />
+            <div className="border-t border-line pt-2.5">
+              <KV k={<span className="font-semibold text-ink">Pay now</span>} v={<span className="text-[20px] font-bold text-ink">{money(shownTotal)}</span>} />
+            </div>
+          </div>
+          ) : (
           <div className="mt-6 space-y-2.5 rounded-tile bg-surface-2 p-4">
             <KV k="Challenge fee" v={money(plan?.price ?? 0)} />
             {weekend && <KV k={`Weekend holding (+${WEEKEND_HOLDING_ADDON_PERCENT}%)`} v={money(weekendFee)} />}
@@ -287,6 +311,7 @@ export default function ChallengesView() {
               <KV k={<span className="font-semibold text-ink">Total</span>} v={<span className="text-[20px] font-bold text-ink">{money(shownTotal)}</span>} />
             </div>
           </div>
+          )}
 
           <label className="mt-5 flex items-start gap-2.5 text-[13px] text-ink-2">
             <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 size-4 accent-[var(--brand-strong)]" />

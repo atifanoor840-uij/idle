@@ -93,10 +93,10 @@ export default function QuoteBoard() {
           <p className="p-dark">{q.text}</p>
           <div className="btn-row">
             <a href={site.links.start} className="btn btn-primary">
-              Start Challenge
+              Start Trading Challenge
             </a>
             <a href={site.links.trial || "/rules"} className="btn btn-outline">
-              {site.links.trial ? "Free Trial" : "Read the Rules"}
+              {site.links.trial ? "Free Trial" : "Read Evaluation Rules"}
             </a>
           </div>
         </div>

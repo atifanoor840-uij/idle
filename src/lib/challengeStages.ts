@@ -49,6 +49,11 @@ export function getStageProfitTarget(planName: string | undefined, phase: string
   return Number(size) * (getStageProfitTargetPercent(planName, phase) / 100);
 }
 
+/** A Flex order whose remaining balance is unpaid: passing does not fund it until the activation fee is paid. */
+export function awaitingFlexActivation(order?: { activationFee?: number | null; parentOrderId?: string | null }) {
+  return !order?.parentOrderId && Number(order?.activationFee) > 0;
+}
+
 export function getStageAccountStatus(phase?: string): "Active" | "Funded" {
   return phase === PHASE_FUNDED ? "Funded" : "Active";
 }

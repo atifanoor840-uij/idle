@@ -3,16 +3,16 @@ import { site } from "@/site.config";
 import { legalUpdated, refundPolicy } from "@/content.config";
 
 export const metadata = {
-  title: `Refund Policy — ${site.name}`,
-  description: `Official refund, cancellation and fee reimbursement policy for ${site.name} challenges.`,
+  title: `Refund & Fee Reimbursement Policy — Trading Challenges | ${site.name}`,
+  description: `Official cancellation and fee reimbursement policy for ${site.name} trading challenges and simulated evaluation programs.`,
 };
 
 export default function RefundPolicyPage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="Legal"
-        title="Refund **Policy**"
+        eyebrow="Evaluation Policy"
+        title="Refund &amp; Cancellation **Policy**"
         sub="Clear, transparent terms regarding evaluation fees, 14-day cancellations, and fee reimbursements."
         seed={5}
       />

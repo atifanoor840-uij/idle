@@ -109,6 +109,10 @@ export interface DBOrder {
   overnightHoldingAddon?: boolean;
   /** Admin-set: pin this order's account(s) to the pre-2026-09 rulebook. */
   legacyRules?: boolean;
+  /** Flex: balance still owed after the upfront payment, paid once the evaluation is passed. */
+  activationFee?: number | null;
+  /** Flex activation order: the Flex order whose remaining balance this order pays. */
+  parentOrderId?: string | null;
   paymentMethod: string;
   status: string;
   gatewayRef: string;
@@ -150,7 +154,10 @@ export interface DBPricingPlan {
   id: string;
   model: string;
   size: number;
+  /** The real price. For Flex, coupons apply to this and it is split into upfront + activation. */
   price: number;
+  /** Flex only: what the trader pays at checkout. */
+  upfrontPrice?: number | null;
   status: string;
   createdAt?: string;
 }

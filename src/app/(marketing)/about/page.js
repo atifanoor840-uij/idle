@@ -4,15 +4,20 @@ import { site } from "@/site.config";
 import { values } from "@/content.config";
 
 export const metadata = {
-  title: `About Us — ${site.name}`,
-  description: site.footer.mission,
+  title: `About Us — Prop Firm Evaluation & Skill-Based Programs | ${site.name}`,
+  description: `Learn about ${site.name}: an educational trader evaluation platform providing simulated accounts, transparent prop firm evaluations, and pathways to earn performance rewards.`,
 };
 
 export default function AboutPage() {
   const stats = [...site.numbers.stats, ...site.proof.stats];
   return (
     <PageShell>
-      <PageHero eyebrow="About Us" title={"Built By Traders,\n**For Traders**."} sub={site.footer.mission} seed={17} />
+      <PageHero
+        eyebrow="About Idle4ex"
+        title={"Built By Traders,\n**Focused on Your Growth**."}
+        sub="An educational evaluation platform engineered to identify, nurture, and reward consistent trading talent through realistic simulated accounts."
+        seed={17}
+      />
 
       <section className="section">
         <div className="container">
@@ -30,15 +35,16 @@ export default function AboutPage() {
       <section className="section section-top0">
         <div className="container">
           <div className="card card-2col" data-reveal>
-            <h2 className="h2">Why we exist</h2>
+            <h2 className="h2">Our Mission: Clear Pathways to Get Funded as a Trader</h2>
             <div className="prose">
               <p>
-                {site.name} is an educational and trader evaluation platform built to assess trading discipline in a realistic
-                simulated market environment — without hidden clauses, surprise rules, or unclear conditions.
+                {site.name} is an educational and trader evaluation platform dedicated to assessing trading skill in a realistic
+                simulated market environment — without ambiguous clauses, surprise rules, or hidden restrictions.
               </p>
               <p>
-                Every account on {site.name} operates in a simulated environment with virtual funds. We publish every evaluation
-                rule on a single page, review every performance reward request by hand, and process approved rewards within 24 hours.
+                Every account on {site.name} operates as a simulated account with virtual funds for educational purposes. We provide
+                transparent trading challenges that allow disciplined traders to prove their strategy and unlock access to a funded
+                account upon successful evaluation, backed by bi-weekly performance rewards.
               </p>
             </div>
           </div>
@@ -48,7 +54,7 @@ export default function AboutPage() {
       <section className="section section-top0">
         <div className="container">
           <h2 className="h2 sub-h" data-reveal>
-            What we stand for
+            Core Principles of Our Skill-Based Programs
           </h2>
           <div className="cards-3">
             {values.map((v, i) => (

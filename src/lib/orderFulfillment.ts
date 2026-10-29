@@ -136,7 +136,95 @@ export async function notifyCredentialsDelivered(account: DBTradingAccount) {
   });
 }
 
+/**
+ * Flex activation payment confirmed: mark it paid and issue the funded account
+ * for the Flex order it pays off. Safe to call twice (webhook retries, admin
+ * re-approving) - an existing funded account is returned untouched.
+ */
+export async function fulfillFlexActivation(order: DBOrder, gatewayRef?: string): Promise<DBTradingAccount | undefined> {
+  const parent = order.parentOrderId ? await db.getOrderById(order.parentOrderId) : undefined;
+  if (!parent) throw new Error("Flex order for this activation payment was not found.");
+  const plan = await db.getPlanById(parent.planId);
+  if (!plan) throw new Error("Challenge plan not found for this order.");
+
+  if (!["paid", "active"].includes(order.status.toLowerCase())) {
+    order.status = "Paid";
+    order.gatewayRef = gatewayRef || order.gatewayRef;
+    order.updatedAt = new Date().toISOString();
+    await db.saveOrder(order);
+    await db.saveAuditLog({
+      id: "log-" + Math.random().toString(36).substring(2, 11),
+      userId: order.userId,
+      userName: order.userId,
+      targetId: order.id,
+      targetType: "order",
+      action: "order_payment",
+      description: `Flex activation fee of $${order.amountPaid} paid for Order ${parent.id} (Order ${order.id})`,
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  const accounts = await db.getAccounts();
+  const existing = accounts.find((a) => a.orderId === parent.id && a.phase === "Funded (Live)");
+  if (existing) return existing;
+  const passed = accounts.find((a) => a.orderId === parent.id && a.phase === "Phase 1 (Evaluation)");
+
+  parent.status = "Live Active";
+  parent.activationFee = 0;
+  parent.updatedAt = new Date().toISOString();
+  await db.saveOrder(parent);
+
+  const platform = passed?.platform || getOrderPlatform(parent);
+  const reserved = await reserveInventoryAccount(parent, platform, plan.size);
+  const generatedId = Math.floor(100000 + Math.random() * 900000).toString();
+  const reservedIdFree = reserved && !accounts.some((a) => a.id === reserved.login);
+  const { account, delivered } = await saveNewAccount(
+    {
+      id: reservedIdFree && reserved ? reserved.login : generatedId,
+      userId: parent.userId,
+      orderId: parent.id,
+      platform: platform as DBTradingAccount["platform"],
+      login: generatedId,
+      passwordMaster: "GENERATED_MASTER_PASS",
+      passwordInvestor: "GENERATED_INVEST_PASS",
+      server: "Range4ex-PendingServer",
+      profitTarget: 0,
+      balance: plan.size,
+      equity: plan.size,
+      todayPl: 0,
+      totalPl: 0,
+      status: "Funded",
+      phase: "Funded (Live)",
+      graphLink: "",
+      externalStatisticsId: "",
+      statisticsApiId: "",
+      deliveryStatus: "pending",
+      createdAt: new Date().toISOString(),
+    },
+    reserved,
+    parent,
+  );
+  if (delivered) await notifyCredentialsDelivered(account);
+
+  await db.saveNotification({
+    id: "notif-" + Math.random().toString(36).substring(2, 11),
+    userId: parent.userId,
+    title: delivered ? "Flex Funded Account Delivered" : "Flex Activation Received",
+    message: delivered
+      ? `Your Flex activation fee was received and your funded account is ready. Login: ${account.login} | Server: ${account.server}.`
+      : `Your Flex activation fee was received. Your funded account is being prepared and the credentials will be emailed shortly.`,
+    type: "success",
+    channel: "in_app",
+    status: "sent",
+    read: false,
+    sentAt: new Date().toISOString(),
+  });
+  return account;
+}
+
 export async function fulfillPaidOrder(order: DBOrder, user: DBUser, platform = "MT5", gatewayRef?: string): Promise<DBTradingAccount | undefined> {
+  if (order.parentOrderId) return fulfillFlexActivation(order, gatewayRef);
+
   const plan = await db.getPlanById(order.planId);
   if (!plan) {
     throw new Error("Challenge plan not found for this order.");

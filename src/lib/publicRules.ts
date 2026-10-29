@@ -78,7 +78,7 @@ export const PUBLIC_MODELS: PublicModel[] = [
     dbModel: "One Step",
     name: "1-Step",
     tag: "Fastest",
-    blurb: "One target, then you are funded. A single phase for traders who want speed.",
+    blurb: "One simulated profit target to earn access to a funded account upon successful evaluation. Built for traders who want streamlined assessment.",
     rules: [
       { k: "Profit target", v: pct(one.phase1TargetPercent) },
       { k: "Max daily loss", v: `${pct(one.dailyDrawdownPercent)} · funded ${pct(F.dailyDrawdownPercent)}` },
@@ -94,7 +94,7 @@ export const PUBLIC_MODELS: PublicModel[] = [
     dbModel: "Instant",
     name: "Instant Funding",
     tag: "No evaluation",
-    blurb: "Skip the challenge and trade a funded account from day one, with tighter limits.",
+    blurb: "Skip the challenge phase and trade a simulated account with immediate access to performance rewards under disciplined risk parameters.",
     rules: [
       { k: "Profit target", v: "None" },
       { k: "Max daily loss", v: pct(inst.dailyDrawdownPercent) },
@@ -196,7 +196,7 @@ export const PROHIBITED = [
 
 /** Payout policy, straight from payoutRules / rulebook / the payouts route. */
 export const PAYOUT_STEPS = [
-  { title: "Get funded", text: "Pass your evaluation, or start on an Instant account, and receive your funded login." },
+  { title: "Qualify for a Funded Account", text: "Pass your trading challenge, or start with an Instant account, to receive your simulated funded account login." },
   { title: "Verify once", text: "Complete identity verification (KYC) and sign the Trader Agreement before your first payout." },
   { title: "Hit your days", text: `Reach ${FUNDED_MIN_WINNING_DAYS} Winning Days (≥${PROFITABLE_DAY_THRESHOLD_PERCENT}% each) in the cycle, at least ${PAYOUT_PERIOD_DAYS} days after you are funded.` },
   { title: "Request", text: `Request from your dashboard. Each ${PAYOUT_PERIOD_DAYS}-day period you can withdraw up to ${WITHDRAWAL_CAP_PERCENT}% of the account size.` },

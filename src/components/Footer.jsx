@@ -48,7 +48,7 @@ export default function Footer() {
             </p>
           )}
           <p>
-            <strong>Risk &amp; No-Investment-Advice Disclosure:</strong> {f.riskWarning}
+            <strong>Risk &amp; Educational Disclosure:</strong> {f.riskWarning}
           </p>
           <p>
             <strong>Restricted Jurisdictions:</strong> {f.restricted}{" "}

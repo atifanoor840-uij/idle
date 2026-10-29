@@ -8,10 +8,12 @@ export type User = {
   emailVerified?: boolean; referredBy?: string; createdAt: string;
 };
 export type PlanModel = "One Step" | "Two Step" | "Instant" | "Flex";
-export type PricingPlan = { id: string; model: PlanModel; size: number; price: number; status: string };
+/** Flex: `price` is the real price, `upfrontPrice` what is paid at checkout. */
+export type PricingPlan = { id: string; model: PlanModel; size: number; price: number; upfrontPrice?: number | null; status: string };
 export type Order = {
   id: string; userId: string; planId: string; couponUsed: string; amountPaid: number;
   referralBalanceApplied?: number; weekendHoldingAddon?: boolean; overnightHoldingAddon?: boolean; legacyRules?: boolean;
+  activationFee?: number | null; parentOrderId?: string | null;
   paymentMethod: string; status: string; gatewayRef: string; createdAt: string; updatedAt: string;
   planName?: string;
 };
@@ -90,6 +92,8 @@ export const api = {
     /** 409 → ApiError with data.code === "PRICE_CHANGED" and data.amount */
     create: (b: { planId: string; paymentMethod: string; couponUsed?: string; useReferralBalance?: boolean; weekendHoldingAddon?: boolean; overnightHoldingAddon?: boolean; expectedAmount?: number }) =>
       post<{ order: Order }>("/api/orders", b),
+    /** Flex: open (or reuse) the order that pays the remaining balance after passing. */
+    activateFlex: (accountId: string, paymentMethod: string) => post<{ order: Order }>("/api/orders/activate", { accountId, paymentMethod }),
     pay: (orderId: string, platform: string) =>
       post<{ provider: string; checkoutUrl: string }>("/api/orders/pay", { orderId, platform, locale: "en" }),
     submitManualPayment: (b: { orderId: string; walletId: string; txid: string; screenshot: File }) => {

@@ -3,15 +3,15 @@ import { site } from "@/site.config";
 import { legalUpdated, terms } from "@/content.config";
 
 export const metadata = {
-  title: `Terms of Service — ${site.name}`,
-  description: `Official terms of service governing participation in ${site.name} educational evaluation programs.`,
+  title: `Terms of Service — Skill-Based Programs & Trading Challenges | ${site.name}`,
+  description: `Official terms of service governing participation in ${site.name} educational evaluation programs and simulated accounts.`,
 };
 
 export default function TermsPage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="Legal"
+        eyebrow="Program Terms"
         title="Terms of **Service**"
         sub="Important legal terms and rules governing your use of the Idle4ex educational and simulated trading platform."
         seed={3}

@@ -3,15 +3,15 @@ import { site } from "@/site.config";
 import { legalUpdated, privacy } from "@/content.config";
 
 export const metadata = {
-  title: `Privacy Policy — ${site.name}`,
-  description: `How ${site.name} collects, protects and manages your personal data and trading activity.`,
+  title: `Privacy Policy — Trader Data Protection & Security | ${site.name}`,
+  description: `How ${site.name} collects, protects and manages your personal data and simulated trading evaluation analytics.`,
 };
 
 export default function PrivacyPage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="Legal"
+        eyebrow="Data Privacy"
         title="Privacy **Policy**"
         sub="How we collect, protect, and handle your personal data in full compliance with international privacy standards."
         seed={4}

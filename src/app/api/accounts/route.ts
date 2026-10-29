@@ -7,6 +7,7 @@ import { withStoredBreachReason } from "@/lib/accountTradingRules";
 import { grantBogoOffersForOrder } from "@/lib/offerGrants";
 import {
   PHASE_FUNDED,
+  awaitingFlexActivation,
   getNextStagePhase,
   getOrderStatusForPhase,
   getPhaseRank,
@@ -409,7 +410,8 @@ export async function PUT(request: Request) {
       const order = await db.getOrderById(account.orderId);
       if (order) {
         const plan = await db.getPlanById(order.planId);
-        const nextPhase = getNextStagePhase(plan?.name, account.phase);
+        // A passed Flex evaluation waits for the activation fee before it is funded.
+        const nextPhase = awaitingFlexActivation(order) ? null : getNextStagePhase(plan?.name, account.phase);
 
         if (nextPhase) {
           order.status = getOrderStatusForPhase(nextPhase);

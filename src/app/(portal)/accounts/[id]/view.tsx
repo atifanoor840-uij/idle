@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { money } from "@/lib/mock";
 import { api, ApiError } from "@/lib/propApi";
+import { MANUAL_CRYPTO_PAYMENT_METHOD, MANUAL_WALLETS } from "@/config/manualWallets";
 import { fmtDate, toUiAccount, useApi, type AccountRules, type RuleCheck } from "@/lib/portal-data";
 import { BREACH_APPEAL_WINDOW_DAYS, FLEX_ACTIVATION_WINDOW_HOURS, LEVERAGE_LIMIT, SCALING_INCREASE_PERCENT, SCALING_PAYOUTS_PER_STEP } from "@/lib/rulebook";
 import { buildPerformanceSeries, getStatisticsTrades } from "@/lib/tradingStatistics";
@@ -705,6 +706,19 @@ export default function AccountDetailsView({ id }: { id: string }) {
           : "";
   const softBreaches = a.rules.alerts.filter((x) => x.type === "warning");
   const flexPassed = a.model === "Flex" && a.status === "Passed";
+  const flexDue = flexPassed ? Number(a.order?.activationFee) || 0 : 0;
+
+  // Flex: open the activation order for the remaining balance and send the trader to checkout.
+  const payActivation = async (method: string) => {
+    setRequesting(true);
+    try {
+      const { order } = await api.orders.activateFlex(a.id, method);
+      window.location.href = `/pay?orderId=${encodeURIComponent(order.id)}&platform=${encodeURIComponent(a.platform)}`;
+    } catch (e) {
+      setNextMsg({ tone: "error", text: e instanceof ApiError ? e.message : "Could not start the activation payment." });
+      setRequesting(false);
+    }
+  };
   const started = fmtDate(a.raw.deliveredAt || a.raw.createdAt);
   const curve = range === "all" ? history.curve : history.curve.slice(-Number(range) - 1);
 
@@ -763,6 +777,18 @@ export default function AccountDetailsView({ id }: { id: string }) {
                     {requesting ? "Requesting…" : a.model === "Two Step" && a.phase === "Phase 1" ? "Request Phase 2" : "Request funded account"} <ArrowRight size={16} />
                   </button>
                 )}
+                {flexDue > 0 && (
+                  <>
+                    <button type="button" onClick={() => payActivation("Paddle")} disabled={requesting} className={cx(btnPrimary, "h-[30px] rounded-md px-3.5")}>
+                      {requesting ? "Opening…" : `Pay ${money(flexDue)} by card`} <ArrowRight size={16} />
+                    </button>
+                    {MANUAL_WALLETS.length > 0 && (
+                      <button type="button" onClick={() => payActivation(MANUAL_CRYPTO_PAYMENT_METHOD)} disabled={requesting} className={btnOutlineAccent}>
+                        Pay with crypto
+                      </button>
+                    )}
+                  </>
+                )}
                 {!a.pendingDelivery && (
                   <button type="button" onClick={() => setDrawer(true)} className={btnOutlineAccent}>
                     <Lock /> Login info
@@ -774,7 +800,7 @@ export default function AccountDetailsView({ id }: { id: string }) {
               </p>
             </div>
           </div>
-          {(nextMsg || a.pendingDelivery || a.status === "Breached" || flexPassed || softBreaches.length > 0) && (
+          {(nextMsg || a.pendingDelivery || a.status === "Breached" || flexDue > 0 || softBreaches.length > 0) && (
             <div className="mt-4 space-y-2">
               {nextMsg && <FormMessage tone={nextMsg.tone}>{nextMsg.text}</FormMessage>}
               {a.pendingDelivery && <FormMessage tone="info">Your login details are being prepared. We&apos;ll email them to you and show them here as soon as they&apos;re ready.</FormMessage>}
@@ -784,9 +810,9 @@ export default function AccountDetailsView({ id }: { id: string }) {
                   support ticket, with your account number, the trade tickets and your evidence.
                 </FormMessage>
               )}
-              {flexPassed && (
+              {flexDue > 0 && (
                 <FormMessage tone="success">
-                  Flex evaluation passed. Pay the activation fee within {FLEX_ACTIVATION_WINDOW_HOURS} hours to receive your funded MT5 login — after that the
+                  Flex evaluation passed. Pay the remaining {money(flexDue)} within {FLEX_ACTIVATION_WINDOW_HOURS} hours to receive your funded login — after that the
                   activation option expires.
                 </FormMessage>
               )}

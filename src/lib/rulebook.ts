@@ -209,13 +209,36 @@ export function getChallengeRuleSet(version: RuleVersion = "current") {
   return version === "legacy" ? LEGACY_CHALLENGE_RULES : CHALLENGE_RULES;
 }
 
-// Flex is sold through its own $9 + activation-fee flow, not the standard
-// checkout, so it is not offered in the Buy Challenge list.
+// Flex is bought with a small upfront fee; the rest of the real price (the
+// activation fee) is paid after the evaluation is passed.
 export const BUY_CHALLENGE_TYPES = [
   CHALLENGE_RULES.one_step_pro.buyLabel,
   CHALLENGE_RULES.two_step_standard.buyLabel,
   CHALLENGE_RULES.instant_funding.buyLabel,
+  CHALLENGE_RULES.flex.buyLabel,
 ];
+
+/** Upfront fee used when a Flex pricing row has none set. */
+export const FLEX_DEFAULT_UPFRONT_PRICE = 9;
+
+/**
+ * Flex price split. The coupon discount is taken from the real price only; the
+ * upfront fee is never discounted and the discount comes off the activation fee.
+ * Mirrored by POST /api/orders and the Buy page.
+ */
+export function flexPriceSplit(realPrice: number, upfrontPrice: number | null | undefined, discountPercent = 0) {
+  const real = Number(realPrice) || 0;
+  const discount = real * ((Number(discountPercent) || 0) / 100);
+  const discountedReal = Math.ceil(real - discount);
+  const upfront = Math.min(Number(upfrontPrice ?? FLEX_DEFAULT_UPFRONT_PRICE) || 0, discountedReal);
+  return {
+    real,
+    discount: real - discountedReal,
+    discountedReal,
+    upfront,
+    activationFee: Math.max(0, discountedReal - upfront),
+  };
+}
 
 export function normalizeChallengeRuleKey(value?: string): ChallengeRuleKey {
   const normalized = (value || "").toUpperCase().replace(/[^A-Z0-9]+/g, " ");

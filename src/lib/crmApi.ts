@@ -82,7 +82,7 @@ export const crm = {
   },
   pricing: {
     list: () => get<{ plans: PricingPlan[] }>("/api/pricing-plans"),
-    save: (b: { model: string; size: number; price: number; status?: string }) => post<{ plan: PricingPlan }>("/api/pricing-plans", b),
+    save: (b: { model: string; size: number; price: number; upfrontPrice?: number; status?: string }) => post<{ plan: PricingPlan }>("/api/pricing-plans", b),
     remove: (id: string) => del(`/api/pricing-plans${q("id", id)}`),
   },
   coupons: {

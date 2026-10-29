@@ -185,6 +185,8 @@ export default function PayView({ orderId, platform, returnState }: { orderId: s
         <Card className="h-fit" title="Order summary">
           <div className="space-y-2.5">
             <KV k="Challenge" v={`${MODEL_LABEL[model]} · ${size ? money(size, 0) : "—"}`} />
+            {order.parentOrderId && <KV k="Payment" v="Flex activation (remaining balance)" />}
+            {!!order.activationFee && <KV k="Due after passing" v={money(order.activationFee)} />}
             <KV k="Platform" v={platform} />
             <KV k="Method" v={<span className="inline-flex items-center gap-1.5">{crypto ? <Wallet size={14} /> : <CreditCard size={14} />}{crypto ? "Crypto" : "Card"}</span>} />
             {order.couponUsed && <KV k="Code" v={order.couponUsed} />}

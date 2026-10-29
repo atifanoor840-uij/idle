@@ -2,6 +2,7 @@
 import { useState, type FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { api } from "@/lib/propApi";
+import { trackPixel } from "@/components/MetaPixel";
 
 export default function SignupForm({ referralCode: initialRef, collaboratorCode }: { referralCode: string; collaboratorCode: string }) {
   const [f, setF] = useState({ name: "", email: "", password: "", country: "", phone: "", referralCode: initialRef });
@@ -26,6 +27,7 @@ export default function SignupForm({ referralCode: initialRef, collaboratorCode 
         referralCode: f.referralCode.trim() || undefined,
         collaboratorCode: collaboratorCode || undefined,
       });
+      trackPixel("CompleteRegistration");
       window.location.href = res.verificationPage || `/auth/verify-email?email=${encodeURIComponent(f.email.trim())}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-up failed.");
