@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { db, type DBPixelEvent } from "./db";
 
 export const META_PIXEL_ID =
-  process.env.NEXT_PUBLIC_META_PIXEL_ID || "1821879545473321";
+  "1054522126934484";
 
 export const META_CONVERSIONS_API_ACCESS_TOKEN =
   process.env.META_CONVERSIONS_API_ACCESS_TOKEN ||

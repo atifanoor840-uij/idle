@@ -9,6 +9,7 @@ import Shell from "@/components/portal/Shell";
 import type { SessionUser } from "@/components/portal/SessionContext";
 import { db } from "@/lib/db";
 import { readSessionUserId } from "@/lib/session";
+import { MetaPixelHead, MetaPixelNoscript } from "@/components/MetaPixel";
 import "./portal.css";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-jakarta" });
@@ -45,8 +46,10 @@ export default async function PortalLayout({ children }: { children: ReactNode }
     <html lang="en" className={jakarta.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <MetaPixelHead />
       </head>
       <body>
+        <MetaPixelNoscript />
         <Shell user={user}>{children}</Shell>
         {/* Zen-try Live Chat Support */}
         <Script src="https://zen-try.site/widget.js" data-workspace-id="0a16652f-4cd3-4a90-8a1c-035ac6d11234" strategy="afterInteractive" />

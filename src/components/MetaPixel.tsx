@@ -1,9 +1,19 @@
-"use client";
-import Script from "next/script";
-
-// Meta (Facebook) browser pixel. Loaded on the sign-up and Buy Challenge pages;
-// fires PageView on load. Other events go through trackPixel().
+// Meta (Facebook) browser pixel, hardcoded. Rendered as a plain <script> in the
+// <head> of the marketing and portal root layouts, so it is in the server HTML of
+// every public and trader page and fires PageView on load. Other events go
+// through trackPixel().
 export const META_BROWSER_PIXEL_ID = "1054522126934484";
+
+const PIXEL_SNIPPET = `!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1054522126934484');
+fbq('track', 'PageView');`;
 
 declare global {
   interface Window {
@@ -20,24 +30,17 @@ export function trackPixel(event: string, data?: Record<string, unknown>, eventI
   }
 }
 
-export default function MetaPixel() {
+/** Put inside <head>. */
+export function MetaPixelHead() {
+  return <script id="meta-pixel" dangerouslySetInnerHTML={{ __html: PIXEL_SNIPPET }} />;
+}
+
+/** Put inside <body>: the no-JavaScript fallback. */
+export function MetaPixelNoscript() {
   return (
-    <>
-      <Script id="meta-pixel" strategy="afterInteractive">
-        {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '${META_BROWSER_PIXEL_ID}');
-fbq('track', 'PageView');`}
-      </Script>
-      <noscript>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img height="1" width="1" style={{ display: "none" }} alt="" src={`https://www.facebook.com/tr?id=${META_BROWSER_PIXEL_ID}&ev=PageView&noscript=1`} />
-      </noscript>
-    </>
+    <noscript>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img height="1" width="1" style={{ display: "none" }} alt="" src="https://www.facebook.com/tr?id=1054522126934484&ev=PageView&noscript=1" />
+    </noscript>
   );
 }
