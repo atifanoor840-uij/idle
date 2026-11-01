@@ -30,7 +30,7 @@ export default function FaqPage() {
             </div>
           ))}
           <div className="banner" data-reveal>
-            <p>Still have questions about our prop firm evaluation?</p>
+            <p>Still have questions about our simulated evaluation?</p>
             <a href={site.links.contact} className="btn btn-outline">
               Contact Trader Support
             </a>

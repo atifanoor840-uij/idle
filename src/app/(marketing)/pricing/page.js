@@ -6,16 +6,16 @@ import { getPublicPricing } from "@/lib/publicPricing";
 import { SPLIT_SUMMARY, WEEKEND_HOLDING_ADDON_PERCENT, OVERNIGHT_HOLDING_ADDON_PERCENT } from "@/lib/publicRules";
 
 export const metadata = {
-  title: `Trading Challenge Pricing & Plans — Prop Firm Evaluation | ${site.name}`,
-  description: `Compare ${site.name} trading challenge pricing from $5K to $200K. Choose 1-Step, 2-Step, or Instant simulated accounts with transparent evaluation rules and up to 90% reward split.`,
+  title: `Evaluation Pricing & Plans — Simulated Trading Programs | ${site.name}`,
+  description: `Compare ${site.name} trading challenge pricing from $5K to $200K. Choose 1-Step, 2-Step, or Instant simulated accounts with transparent evaluation rules and up to 90% reward share.`,
 };
 
 // Prices come from the same pricing_plans table checkout uses; refresh every minute.
 export const revalidate = 60;
 
 const included = [
-  `Performance reward split from ${SPLIT_SUMMARY.first}% up to ${SPLIT_SUMMARY.max}%`,
-  "Access to a funded account upon successful evaluation",
+  `Performance reward share from ${SPLIT_SUMMARY.first}% up to ${SPLIT_SUMMARY.max}%`,
+  "Qualified simulated account upon successful evaluation",
   "No time limits on trading evaluations",
   "News trading allowed during evaluation stages",
   `Optional weekend holding add-on (+${WEEKEND_HOLDING_ADDON_PERCENT}%)`,
@@ -32,7 +32,7 @@ export default async function PricingPage() {
       <PageHero
         eyebrow="Evaluation Plans & Pricing"
         title={`Choose Your **Trading Challenge**.\nUnlock Up To **${SPLIT_SUMMARY.max}%** Rewards.`}
-        sub="Transparent one-time evaluation fees with no monthly subscriptions. Pass the evaluation to gain access to a funded account upon successful completion."
+        sub="Transparent one-time program fees with no monthly subscriptions. Pass the evaluation to qualify for a simulated account upon successful completion."
         seed={14}
       />
       <Pricing models={models} />

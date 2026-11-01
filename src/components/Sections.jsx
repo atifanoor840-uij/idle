@@ -45,9 +45,9 @@ export function FeatureCards() {
           <div className="phone-wrap">
             <Phone variant="account" />
             <div className="tooltip">
-              <span className="tooltip-lbl">Payout approved</span>
+              <span className="tooltip-lbl">Reward approved</span>
               <span className="tooltip-val">$4,120.00</span>
-              <span className="tooltip-sub">Split 90% · sent to USDT</span>
+              <span className="tooltip-sub">Share 90% · simulated reward</span>
             </div>
           </div>
         </div>
@@ -188,7 +188,7 @@ export function Payouts() {
           <h2 className="h2">{p.title}</h2>
           <Checklist items={p.items} bold className="inline" />
           <a href="/payout-policy" className="btn btn-grey">
-            Payout Methods
+            Reward Methods
           </a>
           <p className="note">
             {p.note}{" "}
@@ -221,7 +221,7 @@ export function Steps() {
     <section className="section section-top0" id="steps">
       <div className="container center">
         <h2 className="h2" data-reveal>
-          Get Funded as a Trader in 4 Evaluation Steps
+          Become a Qualified Trader in 4 Evaluation Steps
         </h2>
         <div className="steps">
           {site.steps.map((s, i) => (

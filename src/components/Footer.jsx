@@ -42,23 +42,26 @@ export default function Footer() {
         </div>
 
         <div className="legal">
-          {f.educationalDisclaimer && (
-            <p>
-              <strong>Educational &amp; Simulated Trading Disclaimer:</strong> {f.educationalDisclaimer}
-            </p>
-          )}
           <p>
-            <strong>Risk &amp; Educational Disclosure:</strong> {f.riskWarning}
+            <strong>Important information &amp; disclaimer</strong>
           </p>
+          {f.disclaimer.map((d) =>
+            d.p.map((text, i) => (
+              <p key={`${d.h}-${i}`}>
+                {i === 0 && <strong>{d.h}: </strong>}
+                {text}
+              </p>
+            ))
+          )}
           <p>
             <strong>Restricted Jurisdictions:</strong> {f.restricted}{" "}
             <a href="/terms">Terms of Service</a> · <a href="/privacy">Privacy Policy</a> ·{" "}
-            <a href="/risk-disclosure">Risk Disclosure</a>
+            <a href="/refund-policy">Refund Policy</a> · <a href="/risk-disclosure">Risk Disclosure</a>
           </p>
         </div>
 
         <div className="footer-bottom">
-          © {site.year} {site.company} ({site.name}) · Educational &amp; Simulated Trading Platform · All rights reserved
+          © {site.year} {site.legalEntity.name} ({site.name}) · Educational &amp; Simulated Trading Platform · All rights reserved
         </div>
       </div>
     </footer>

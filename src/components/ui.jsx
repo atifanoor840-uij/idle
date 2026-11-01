@@ -137,12 +137,12 @@ export function PhoneScreen({ variant = "account" }) {
   }
   return (
     <div className="ps">
-      <div className="ps-label">Funded account · $100K</div>
+      <div className="ps-label">Simulated account · $100K</div>
       <div className="ps-balance">$108,240.50</div>
       <div className="ps-gain up">+$8,240.50 (8.24%)</div>
       <Spark seed={variant === "alt" ? 21 : 5} className="ps-spark" />
       <div className="ps-bar">
-        <span>Profit target</span>
+        <span>Reward target</span>
         <span>82%</span>
       </div>
       <div className="ps-progress">

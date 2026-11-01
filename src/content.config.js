@@ -28,15 +28,15 @@ export const faq = [
     items: [
       {
         q: `What is ${N}?`,
-        a: `${N} is a premier trader evaluation platform offering skill-based programs for educational purposes. After passing our trading challenge or starting with an Instant Simulated Account, you trade simulated accounts in a realistic market environment and can unlock access to a funded account upon successful evaluation, earning performance rewards of up to ${SPLIT_SUMMARY.max}% of your simulated gains.`,
+        a: `${N} is a premier trader evaluation platform offering skill-based programs for educational purposes. After passing our evaluation or starting with an Instant Simulated Account, you trade MT5 demo accounts in a realistic market environment and can qualify for a simulated account upon successful evaluation, with a simulated reward share of up to ${SPLIT_SUMMARY.max}%.`,
       },
       {
-        q: "Do I trade real capital or live money?",
-        a: `No. ${N} is strictly an educational platform. Every tier — including evaluation phases, Instant accounts, and funded-stage accounts — consists of simulated accounts with virtual funds operating in a synthetic environment, never real capital.`,
+        q: "Do I trade real money on live markets?",
+        a: `No. ${N} is strictly an educational platform. Every tier — including evaluation phases, Instant accounts, and qualified-stage accounts — consists of demo accounts with virtual funds operating in a simulated environment, never real money.`,
       },
       {
         q: "Who can join the evaluation program?",
-        a: "Any trader 18 or older who is not a resident of a restricted jurisdiction. Identity verification (KYC) is required before your first performance reward payout.",
+        a: "Any trader 18 or older who is not a resident of a restricted jurisdiction. Identity verification (KYC) is required before your first performance reward.",
       },
     ],
   },
@@ -44,16 +44,16 @@ export const faq = [
     cat: "Trading Challenges & Evaluations",
     items: [
       {
-        q: "Which trading challenge should I pick to get funded as a trader?",
-        a: `The 2-Step trading challenge has two simulated profit targets (${two.phase1TargetPercent}% then ${two.phase2TargetPercent}%) with our lowest entry fee. The 1-Step forex evaluation program has a single ${one.phase1TargetPercent}% target. Instant Simulated Accounts have no evaluation target but maintain strict risk limits: ${inst.dailyDrawdownPercent}% daily and ${inst.overallDrawdownPercent}% static loss limits.`,
+        q: "Which evaluation should I pick to become a qualified trader?",
+        a: `The 2-Step evaluation has two simulated reward targets (${two.phase1TargetPercent}% then ${two.phase2TargetPercent}%) with our lowest program fee. The 1-Step forex evaluation program has a single ${one.phase1TargetPercent}% target. Instant Simulated Accounts have no evaluation target but maintain strict risk limits: ${inst.dailyDrawdownPercent}% daily and ${inst.overallDrawdownPercent}% static loss limits.`,
       },
       {
         q: "Is there a time limit on the trading evaluation?",
-        a: `No. Our trading evaluations have no deadline or time pressure. You only need ${MINIMUM_PROFITABLE_DAYS} profitable days (each achieving at least ${PROFITABLE_DAY_THRESHOLD_PERCENT}% of the starting simulated balance) per phase, and you must execute at least one simulated trade every ${INACTIVITY_LIMIT_DAYS} calendar days.`,
+        a: `No. Our trading evaluations have no deadline or time pressure. You only need ${MINIMUM_PROFITABLE_DAYS} winning days (each achieving at least ${PROFITABLE_DAY_THRESHOLD_PERCENT}% of the starting simulated balance) per phase, and you must execute at least one simulated trade every ${INACTIVITY_LIMIT_DAYS} calendar days.`,
       },
       {
-        q: "Do the drawdown limits change once I earn access to a funded account?",
-        a: `Yes. When you qualify for access to a funded account upon successful evaluation, accounts follow disciplined risk parameters: ${FUNDED_DRAWDOWN_LIMITS.dailyDrawdownPercent}% daily and ${FUNDED_DRAWDOWN_LIMITS.overallDrawdownPercent}% overall loss limits. Trades must remain open for at least ${MINIMUM_HOLDING_SECONDS / 60} minutes, and new positions must be spaced at least 5 minutes apart. Refer to the Trading Rules page for full specifications.`,
+        q: "Do the drawdown limits change once I become a qualified trader?",
+        a: `Yes. When you qualify for a simulated account upon successful evaluation, accounts follow disciplined risk parameters: ${FUNDED_DRAWDOWN_LIMITS.dailyDrawdownPercent}% daily and ${FUNDED_DRAWDOWN_LIMITS.overallDrawdownPercent}% overall loss limits. Trades must remain open for at least ${MINIMUM_HOLDING_SECONDS / 60} minutes, and new positions must be spaced at least 5 minutes apart. Refer to the Trading Rules page for full specifications.`,
       },
       {
         q: "What happens if I breach an evaluation rule?",
@@ -61,20 +61,20 @@ export const faq = [
       },
       {
         q: "Can I hold trades over the weekend or trade during high-impact news?",
-        a: `Overnight position holding on weekdays is permitted. Weekend holding requires the +${WEEKEND_HOLDING_ADDON_PERCENT}% add-on at checkout. News trading is unrestricted during evaluation stages; on funded-stage and Instant simulated accounts, profits from positions opened or closed within ${NEWS_RESTRICTED_MINUTES_EACH_SIDE} minutes of high-impact news are excluded from withdrawable rewards.`,
+        a: `Overnight position holding on weekdays is permitted. Weekend holding requires the +${WEEKEND_HOLDING_ADDON_PERCENT}% add-on at checkout. News trading is unrestricted during evaluation stages; on qualified-stage and Instant simulated accounts, simulated gains from positions opened or closed within ${NEWS_RESTRICTED_MINUTES_EACH_SIDE} minutes of high-impact news are excluded from performance rewards.`,
       },
     ],
   },
   {
-    cat: "Performance Rewards & Payouts",
+    cat: "Simulated Performance Rewards",
     items: [
       {
-        q: "When can I request a performance reward payout?",
-        a: `You may request rewards once your funded-stage or Instant simulated account meets the required profitable trading days and your KYC is verified. Traders can request up to ${WITHDRAWAL_CAP_PERCENT}% of the simulated account size in every ${PAYOUT_PERIOD_DAYS}-day period. The minimum withdrawal request is $${MIN_PAYOUT_USD}.`,
+        q: "When can I request a performance reward?",
+        a: `You may request rewards once your qualified-stage or Instant simulated account meets the required winning days and your KYC is verified. Traders can request up to ${WITHDRAWAL_CAP_PERCENT}% of the simulated account size in every ${PAYOUT_PERIOD_DAYS}-day period. The minimum reward request is $${MIN_PAYOUT_USD}.`,
       },
       {
-        q: "What is the performance reward split?",
-        a: `${SPLIT_SUMMARY.first}% on your initial payout, progressing to ${SPLIT_SUMMARY.max}% by your ${SPLIT_SUMMARY.steps}rd successful payout on the same simulated account.`,
+        q: "What is the performance reward share?",
+        a: `${SPLIT_SUMMARY.first}% on your initial reward, progressing to ${SPLIT_SUMMARY.max}% by your ${SPLIT_SUMMARY.steps}rd approved reward on the same simulated account.`,
       },
       {
         q: "How are performance rewards processed?",
@@ -85,10 +85,10 @@ export const faq = [
   {
     cat: "Platforms & Simulated Account Setup",
     items: [
-      { q: "Which platforms are available for the prop firm evaluation?", a: `${site.platforms.join(", ")}. You select your preferred trading terminal when securing your challenge.` },
+      { q: "Which platforms are available for the evaluation?", a: `${site.platforms.join(", ")}. You select your preferred trading terminal when starting your evaluation.` },
       {
         q: "Are Expert Advisors (EAs) and automated algorithms allowed?",
-        a: "Yes, automated trading is permitted provided your EA complies with all evaluation criteria — including minimum trade holding times and entry spacing on funded-stage simulated accounts. High-frequency arbitrage and latency exploitation of simulated demo feeds are prohibited.",
+        a: "Yes, automated trading is permitted provided your EA complies with all evaluation criteria — including minimum trade holding times and entry spacing on qualified-stage simulated accounts. High-frequency arbitrage and latency exploitation of simulated demo feeds are prohibited.",
       },
       {
         q: "How quickly do I receive my simulated account credentials?",
@@ -100,7 +100,7 @@ export const faq = [
 
 /* ── Affiliates ──────────────────────────────────────────── */
 export const affiliateTiers = [
-  { name: "Direct Commission", rate: "10%", req: "On every trading challenge purchased by your referrals" },
+  { name: "Direct Commission", rate: "10%", req: "On every evaluation purchased by your referrals" },
   { name: "Trader Discount", rate: "10%", req: "Instant discount applied when referrals use your code at checkout" },
   { name: "VIP Partner Tier", rate: "Custom Rate", req: "Enhanced terms for trading educators, communities, and creators" },
 ];
@@ -109,7 +109,7 @@ export const affiliatePerks = [
   "Instant access to your personalized referral link and coupon code upon sign-up",
   "Generous 10% commission on every evaluation purchase and retake",
   "Real-time analytics and conversion tracking in your Idle4ex dashboard",
-  "Option to redeem approved affiliate commissions for new trading challenges",
+  "Option to redeem approved affiliate commissions for new evaluations",
   "Regular bi-weekly partner disbursements processed reliably by our team",
 ];
 
@@ -125,7 +125,7 @@ export const contact = {
   email: "support@idle4ex.com",
   partners: "partners@idle4ex.com",
   hours: "Live Chat 24/7 · Email inquiries answered within 12 hours",
-  address: "Idle4ex Ltd. — Educational & Simulated Trading Evaluation Platform",
+  address: "BEEBY EDUCATION LIMITED — Educational & Simulated Trading Evaluation Platform",
 };
 
 /* ── Legal ───────────────────────────────────────────────── */
@@ -135,7 +135,7 @@ export const refundPolicy = [
   {
     h: "General Refund Principles",
     p: [
-      `All fees paid on ${N} are for digital access to our educational evaluation platform, proprietary risk assessment systems, and simulated trading infrastructure.`,
+      `All fees paid on ${N} are service fees for digital access to our educational evaluation platform, risk assessment systems, and simulated trading infrastructure.`,
       "Because our automated systems instantly allocate virtual server resources and generate trading credentials upon purchase, evaluation fees are non-refundable once any simulated trading activity has commenced.",
     ],
   },
@@ -147,10 +147,10 @@ export const refundPolicy = [
     ],
   },
   {
-    h: "100% Refundable Challenge Fee on First Payout",
+    h: "100% Program Fee Refund on First Reward",
     p: [
-      `Traders who demonstrate discipline, successfully satisfy all phase objectives, and earn their first approved performance reward on a funded simulated account receive a 100% refund of their original challenge registration fee.`,
-      "This reimbursement is credited directly to your payout destination alongside your performance reward share.",
+      `Traders who demonstrate discipline, successfully satisfy all phase objectives, and earn their first approved performance reward on a qualified simulated account receive a 100% refund of their original program fee.`,
+      "This reimbursement is credited to your verified reward destination alongside your performance reward.",
     ],
   },
   {
@@ -195,8 +195,8 @@ export const terms = [
     h: "Strictly Educational & Simulated Platform",
     p: [
       `${N} operates exclusively as an educational, skill-based trader evaluation platform. Under no circumstances does ${N} provide banking, custodial, asset management, or fiduciary advice.`,
-      "All accounts provided — across 1-Step, 2-Step, Instant, and funded stages — are simulated demo accounts operating with virtual currency in a synthetic trading environment.",
-      "All trading is conducted on simulated accounts with virtual funds for educational purposes. Fees paid represent access charges for skill-based programs and evaluation infrastructure, not capital deposits.",
+      "All accounts provided — across 1-Step, 2-Step, Instant, and qualified stages — are simulated demo accounts operating with virtual currency in a synthetic trading environment.",
+      "All trading is conducted on simulated accounts with virtual funds for educational purposes. Program fees are service fees for skill-based programs and evaluation infrastructure; they are not deposits or investments.",
     ],
   },
   {
@@ -204,7 +204,7 @@ export const terms = [
     p: [
       "To use our services, you must be at least 18 years of age (or the age of legal majority in your jurisdiction) and possess the full legal capacity to enter into binding agreements.",
       "Each trader is permitted to create and maintain exactly one client profile. Account sharing, account selling, or trading through another individual's identity is strictly prohibited.",
-      "Before any performance reward payout is approved, you must successfully complete identity verification (KYC) through our verified compliance partner.",
+      "Before any performance reward is approved, you must successfully complete identity verification (KYC) through our verified compliance partner.",
     ],
     list: [
       "Residents of restricted jurisdictions (including OFAC sanctioned countries) are strictly prohibited from using the platform.",
@@ -217,7 +217,7 @@ export const terms = [
     p: [
       `${N} offers various simulated evaluation tiers, including 1-Step Challenge, 2-Step Challenge, and Instant Simulated Accounts.`,
       "Traders may customize their challenge by purchasing optional add-ons, such as Weekend Holding (+20%) and Overnight Holding (+10%). These add-ons grant explicit exemptions from standard intraday/weekend position closure rules.",
-      "The specific parameters for each plan (profit targets, daily loss limits, maximum total loss limits) are published in our live catalog and are immutable for the duration of that account's life cycle.",
+      "The specific parameters for each plan (reward targets, daily loss limits, maximum total loss limits) are published in our live catalog and are immutable for the duration of that account's life cycle.",
     ],
   },
   {
@@ -233,10 +233,10 @@ export const terms = [
     ],
   },
   {
-    h: "Performance Rewards & Withdrawal Conditions",
+    h: "Performance Reward Conditions",
     p: [
-      "Traders who complete evaluation stages and demonstrate sustained discipline on funded simulated accounts are eligible to receive performance-based rewards.",
-      "Performance rewards represent contractual incentives based on simulated performance and do not constitute dividends, interest, or return on invested capital.",
+      "Traders who complete evaluation stages and demonstrate sustained discipline on qualified simulated accounts are eligible to receive performance-based rewards.",
+      "Performance rewards represent contractual incentives based on simulated performance and do not constitute dividends, interest, or any return on a deposit.",
     ],
   },
 ];
@@ -263,15 +263,15 @@ export const privacy = [
 export const riskDisclosure = [
   {
     h: "Educational Evaluation Platform Only",
-    p: `${N} is an educational and trader evaluation platform. All accounts provided across all stages — including evaluation challenges, Instant accounts, and funded stages — are demo accounts with virtual, simulated funds operating in a simulated environment. Users never trade real capital, and no orders are routed to real-money markets.`,
+    p: `${N} is an educational and trader evaluation platform. All accounts provided across all stages — including evaluations, Instant accounts, and qualified stages — are demo accounts with virtual, simulated funds operating in a simulated environment. Users never trade real money, and no orders are routed to real-money markets.`,
   },
   {
     h: "Simulated Execution vs. Real-Money Markets",
-    p: "Hypothetical or simulated trading performance has inherent limitations. Unlike an actual performance record in live financial markets, simulated results do not represent actual trading with real capital. Because trades are executed in a synthetic market environment, results may under- or over-compensate for factors such as real market liquidity, slippage, and order book depth.",
+    p: "Hypothetical or simulated trading performance has inherent limitations. Unlike an actual performance record in live financial markets, simulated results do not represent actual trading with real money. Because trades are executed in a synthetic market environment, results may under- or over-compensate for factors such as real market liquidity, slippage, and order book depth.",
   },
   {
     h: "Independent Educational & Evaluation Platform",
-    p: `${N} operates strictly as an independent evaluation platform for educational purposes. Fees paid to ${N} grant access to simulated accounts, performance analytics, and skill-based evaluation technology — they are never client deposits, capital allocations, or margin funds.`,
+    p: `${N} operates strictly as an independent evaluation platform for educational purposes. Fees paid to ${N} grant access to simulated accounts, performance analytics, and skill-based evaluation technology — they are service fees, never client deposits, investments, or margin funds.`,
   },
   {
     h: "No Financial or Trading Advice",

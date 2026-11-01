@@ -4,8 +4,8 @@ import { site } from "@/site.config";
 import { ALLOWED, CORE_RULES, LEVERAGE_LIMIT, PROHIBITED, PUBLIC_MODELS, RULE_ORDER } from "@/lib/publicRules";
 
 export const metadata = {
-  title: `Trading Rules & Evaluation Guidelines — Prop Firm Challenge | ${site.name}`,
-  description: `Read the official ${site.name} trading evaluation rules: daily loss limits, maximum drawdown, profit targets, and permitted strategies for our skill-based programs.`,
+  title: `Trading Rules & Evaluation Guidelines — Simulated Program | ${site.name}`,
+  description: `Read the official ${site.name} trading evaluation rules: daily loss limits, maximum drawdown, reward targets, and permitted strategies for our skill-based programs.`,
 };
 
 function MarkList({ items, ok }) {
@@ -32,7 +32,7 @@ export default function RulesPage() {
       <PageHero
         eyebrow="Evaluation Rules & Guidelines"
         title={"Clear Rules Built for\n**Disciplined Traders**."}
-        sub="Transparent parameters for our trading evaluations. Master these limits on simulated accounts to qualify for access to a funded account upon successful evaluation."
+        sub="Transparent parameters for our trading evaluations. Master these limits on simulated accounts to qualify for a simulated account upon successful evaluation."
         seed={22}
       />
 
@@ -63,7 +63,7 @@ export default function RulesPage() {
               </tbody>
             </table>
           </div>
-          <p className="note">&ldquo;Funded&rdquo; values apply once a 1-Step or 2-Step trading challenge passes the evaluation.</p>
+          <p className="note">&ldquo;Qualified&rdquo; values apply once a 1-Step or 2-Step trading challenge passes the evaluation.</p>
         </div>
       </section>
 

@@ -4,8 +4,8 @@ import { site } from "@/site.config";
 import { values } from "@/content.config";
 
 export const metadata = {
-  title: `About Us — Prop Firm Evaluation & Skill-Based Programs | ${site.name}`,
-  description: `Learn about ${site.name}: an educational trader evaluation platform providing simulated accounts, transparent prop firm evaluations, and pathways to earn performance rewards.`,
+  title: `About Us — Simulated Trading Evaluation & Skill-Based Programs | ${site.name}`,
+  description: `Learn about ${site.name}: an educational trader evaluation platform providing simulated accounts, transparent simulated evaluations, and simulated performance rewards.`,
 };
 
 export default function AboutPage() {
@@ -35,7 +35,7 @@ export default function AboutPage() {
       <section className="section section-top0">
         <div className="container">
           <div className="card card-2col" data-reveal>
-            <h2 className="h2">Our Mission: Clear Pathways to Get Funded as a Trader</h2>
+            <h2 className="h2">Our Mission: Clear Pathways to Become a Qualified Trader</h2>
             <div className="prose">
               <p>
                 {site.name} is an educational and trader evaluation platform dedicated to assessing trading skill in a realistic
@@ -43,8 +43,8 @@ export default function AboutPage() {
               </p>
               <p>
                 Every account on {site.name} operates as a simulated account with virtual funds for educational purposes. We provide
-                transparent trading challenges that allow disciplined traders to prove their strategy and unlock access to a funded
-                account upon successful evaluation, backed by bi-weekly performance rewards.
+                transparent evaluations that allow disciplined traders to prove their strategy and qualify for a simulated
+                account upon successful evaluation, backed by bi-weekly simulated performance rewards.
               </p>
             </div>
           </div>

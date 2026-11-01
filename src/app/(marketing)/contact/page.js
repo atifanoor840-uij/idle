@@ -11,7 +11,7 @@ export const metadata = {
 export default function ContactPage() {
   const channels = [
     { icon: MessageCircle, title: "Live Chat Support", text: "Fastest response — click the chat widget at the bottom right of any page.", cta: "24/7 Support" },
-    { icon: Mail, title: "Email Desk", text: "For evaluation questions, KYC verification, and payout requests.", cta: contact.email, href: `mailto:${contact.email}` },
+    { icon: Mail, title: "Email Desk", text: "For evaluation questions, KYC verification, and reward requests.", cta: contact.email, href: `mailto:${contact.email}` },
     { icon: Users, title: "Discord Community", text: "Educational sessions, trading discussions, and platform announcements.", cta: site.banner.cta, href: site.links.discord },
   ];
   return (
@@ -19,7 +19,7 @@ export default function ContactPage() {
       <PageHero
         eyebrow="Contact & Support"
         title={"Here to Support Your\n**Trading Journey**."}
-        sub="Have questions about a trading challenge or prop firm evaluation? Our dedicated team is available 24/7."
+        sub="Have questions about a trading challenge or simulated evaluation? Our dedicated team is available 24/7."
         seed={11}
       />
 

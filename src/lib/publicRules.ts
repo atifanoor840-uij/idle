@@ -51,7 +51,7 @@ const common = [
   { k: "Leverage", v: `Up to 1:${LEVERAGE_LIMIT}` },
   { k: "Overnight holding", v: "Not allowed (close before 00:00 UTC)" },
   { k: "Weekend holding", v: `Optional add-on (+${WEEKEND_HOLDING_ADDON_PERCENT}%)` },
-  { k: "Profit split", v: SPLIT_TEXT },
+  { k: "Reward share", v: SPLIT_TEXT },
 ];
 
 export const PUBLIC_MODELS: PublicModel[] = [
@@ -63,12 +63,12 @@ export const PUBLIC_MODELS: PublicModel[] = [
     tag: "Lowest fee",
     blurb: "Two evaluation phases with separate targets. Best value for disciplined traders.",
     rules: [
-      { k: "Phase 1 profit target", v: pct(two.phase1TargetPercent) },
-      { k: "Phase 2 profit target", v: pct(two.phase2TargetPercent) },
-      { k: "Max daily loss", v: `${pct(two.dailyDrawdownPercent)} · funded ${pct(F.dailyDrawdownPercent)}` },
-      { k: "Max overall loss", v: `${pct(two.overallDrawdownPercent)} · funded ${pct(F.overallDrawdownPercent)} (static)` },
+      { k: "Phase 1 reward target", v: pct(two.phase1TargetPercent) },
+      { k: "Phase 2 reward target", v: pct(two.phase2TargetPercent) },
+      { k: "Max daily loss", v: `${pct(two.dailyDrawdownPercent)} · qualified ${pct(F.dailyDrawdownPercent)}` },
+      { k: "Max overall loss", v: `${pct(two.overallDrawdownPercent)} · qualified ${pct(F.overallDrawdownPercent)} (static)` },
       { k: "Winning days", v: `${two.minTradingDaysEvaluation} per phase (≥${PROFITABLE_DAY_THRESHOLD_PERCENT}% each)` },
-      { k: "Days before payout", v: `${FUNDED_MIN_WINNING_DAYS} Winning Days` },
+      { k: "Days before reward", v: `${FUNDED_MIN_WINNING_DAYS} Winning Days` },
       ...common,
     ],
   },
@@ -78,13 +78,13 @@ export const PUBLIC_MODELS: PublicModel[] = [
     dbModel: "One Step",
     name: "1-Step",
     tag: "Fastest",
-    blurb: "One simulated profit target to earn access to a funded account upon successful evaluation. Built for traders who want streamlined assessment.",
+    blurb: "One simulated reward target to qualify for a simulated account upon successful evaluation. Built for traders who want streamlined assessment.",
     rules: [
-      { k: "Profit target", v: pct(one.phase1TargetPercent) },
-      { k: "Max daily loss", v: `${pct(one.dailyDrawdownPercent)} · funded ${pct(F.dailyDrawdownPercent)}` },
-      { k: "Max overall loss", v: `${pct(one.overallDrawdownPercent)} · funded ${pct(F.overallDrawdownPercent)} (static)` },
+      { k: "Reward target", v: pct(one.phase1TargetPercent) },
+      { k: "Max daily loss", v: `${pct(one.dailyDrawdownPercent)} · qualified ${pct(F.dailyDrawdownPercent)}` },
+      { k: "Max overall loss", v: `${pct(one.overallDrawdownPercent)} · qualified ${pct(F.overallDrawdownPercent)} (static)` },
       { k: "Winning days", v: `${one.minTradingDaysEvaluation} (≥${PROFITABLE_DAY_THRESHOLD_PERCENT}% each)` },
-      { k: "Days before payout", v: `${FUNDED_MIN_WINNING_DAYS} Winning Days` },
+      { k: "Days before reward", v: `${FUNDED_MIN_WINNING_DAYS} Winning Days` },
       ...common,
     ],
   },
@@ -92,15 +92,15 @@ export const PUBLIC_MODELS: PublicModel[] = [
     id: "instant",
     key: inst.key,
     dbModel: "Instant",
-    name: "Instant Funding",
+    name: "Instant Account",
     tag: "No evaluation",
     blurb: "Skip the challenge phase and trade a simulated account with immediate access to performance rewards under disciplined risk parameters.",
     rules: [
-      { k: "Profit target", v: "None" },
+      { k: "Reward target", v: "None" },
       { k: "Max daily loss", v: pct(inst.dailyDrawdownPercent) },
       { k: "Max overall loss", v: `${pct(inst.overallDrawdownPercent)} (static)` },
       { k: "Max loss per trade", v: pct(SINGLE_TRADE_LOSS_LIMIT_PERCENT) },
-      { k: "Days before payout", v: `${FUNDED_MIN_WINNING_DAYS} Winning Days` },
+      { k: "Days before reward", v: `${FUNDED_MIN_WINNING_DAYS} Winning Days` },
       ...common,
     ],
   },
@@ -108,19 +108,19 @@ export const PUBLIC_MODELS: PublicModel[] = [
 
 /** Row order for the side-by-side comparison table. */
 export const RULE_ORDER = [
-  "Profit target",
-  "Phase 1 profit target",
-  "Phase 2 profit target",
+  "Reward target",
+  "Phase 1 reward target",
+  "Phase 2 reward target",
   "Max daily loss",
   "Max overall loss",
   "Max loss per trade",
   "Winning days",
-  "Days before payout",
+  "Days before reward",
   "Time limit",
   "Leverage",
   "Overnight holding",
   "Weekend holding",
-  "Profit split",
+  "Reward share",
 ];
 
 /** Hard rules: breaking one closes the account (unless marked soft). */
@@ -133,12 +133,12 @@ export const CORE_RULES = [
   {
     title: "Maximum loss",
     value: `${F.overallDrawdownPercent}%`,
-    text: `Balance and equity may never fall more than ${F.overallDrawdownPercent}% below the initial balance. The floor is static and never trails your profits.`,
+    text: `Balance and equity may never fall more than ${F.overallDrawdownPercent}% below the initial balance. The floor is static and never trails your simulated gains.`,
   },
   {
     title: "Winning days",
     value: `${MINIMUM_PROFITABLE_DAYS} / ${FUNDED_MIN_WINNING_DAYS} days`,
-    text: `A Winning Day closes at least ${PROFITABLE_DAY_THRESHOLD_PERCENT}% of the initial balance in profit. Challenges need ${MINIMUM_PROFITABLE_DAYS} per phase; funded and Instant accounts need ${FUNDED_MIN_WINNING_DAYS} before every payout.`,
+    text: `A Winning Day closes at least ${PROFITABLE_DAY_THRESHOLD_PERCENT}% of the initial balance in simulated gains. Challenges need ${MINIMUM_PROFITABLE_DAYS} per phase; qualified and Instant accounts need ${FUNDED_MIN_WINNING_DAYS} before every reward.`,
   },
   {
     title: "Minimum holding time",
@@ -148,12 +148,12 @@ export const CORE_RULES = [
   {
     title: "Trade layering",
     value: `${LAYER_MIN} min`,
-    text: `On funded and Instant accounts a new trade may open only ${LAYER_MIN} minutes after the previous trade opened. Instant accounts may hold at most ${MAX_CONCURRENT_LAYERS} positions at once.`,
+    text: `On qualified and Instant accounts a new trade may open only ${LAYER_MIN} minutes after the previous trade opened. Instant accounts may hold at most ${MAX_CONCURRENT_LAYERS} positions at once.`,
   },
   {
     title: "1% per-trade risk",
     value: pct(SINGLE_TRADE_LOSS_LIMIT_PERCENT),
-    text: `On funded and Instant accounts the floating loss on a single position may never exceed ${SINGLE_TRADE_LOSS_LIMIT_PERCENT}% of the initial balance.`,
+    text: `On qualified and Instant accounts the floating loss on a single position may never exceed ${SINGLE_TRADE_LOSS_LIMIT_PERCENT}% of the initial balance.`,
   },
   {
     title: "Tick scalping",
@@ -168,7 +168,7 @@ export const CORE_RULES = [
   {
     title: "News trading",
     value: `±${NEWS_RESTRICTED_MINUTES_EACH_SIDE} min`,
-    text: `On funded and Instant accounts, profit from trades opened or closed within ${NEWS_RESTRICTED_MINUTES_EACH_SIDE} minutes of high-impact news (${NEWS_COVERED_CURRENCIES.join(", ")}) is removed. The account stays open. Challenges trade news freely.`,
+    text: `On qualified and Instant accounts, simulated gains from trades opened or closed within ${NEWS_RESTRICTED_MINUTES_EACH_SIDE} minutes of high-impact news (${NEWS_COVERED_CURRENCIES.join(", ")}) is removed. The account stays open. Challenges trade news freely.`,
   },
   {
     title: "Overnight & weekend",
@@ -187,7 +187,7 @@ export const ALLOWED = [
 
 export const PROHIBITED = [
   `Tick scalping (${TICK_SCALPING_TRADE_LIMIT}+ trades under ${TICK_SCALPING_MAX_HOLD_SECONDS}s in an hour)`,
-  `Opening trades less than ${LAYER_MIN} minutes apart on funded and Instant accounts`,
+  `Opening trades less than ${LAYER_MIN} minutes apart on qualified and Instant accounts`,
   "Holding positions overnight, or over the weekend without the add-on",
   "Hedging between accounts, external copy trading, martingale and grid",
   "Latency, tick or price-feed arbitrage",
@@ -196,19 +196,19 @@ export const PROHIBITED = [
 
 /** Payout policy, straight from payoutRules / rulebook / the payouts route. */
 export const PAYOUT_STEPS = [
-  { title: "Qualify for a Funded Account", text: "Pass your trading challenge, or start with an Instant account, to receive your simulated funded account login." },
-  { title: "Verify once", text: "Complete identity verification (KYC) and sign the Trader Agreement before your first payout." },
-  { title: "Hit your days", text: `Reach ${FUNDED_MIN_WINNING_DAYS} Winning Days (≥${PROFITABLE_DAY_THRESHOLD_PERCENT}% each) in the cycle, at least ${PAYOUT_PERIOD_DAYS} days after you are funded.` },
-  { title: "Request", text: `Request from your dashboard. Each ${PAYOUT_PERIOD_DAYS}-day period you can withdraw up to ${WITHDRAWAL_CAP_PERCENT}% of the account size.` },
+  { title: "Qualify for a Simulated Account", text: "Pass your evaluation, or start with an Instant account, to receive your qualified simulated account login." },
+  { title: "Verify once", text: "Complete identity verification (KYC) and sign the Trader Agreement before your first reward." },
+  { title: "Hit your days", text: `Reach ${FUNDED_MIN_WINNING_DAYS} Winning Days (≥${PROFITABLE_DAY_THRESHOLD_PERCENT}% each) in the cycle, at least ${PAYOUT_PERIOD_DAYS} days after you qualify.` },
+  { title: "Request", text: `Request from your dashboard. Each ${PAYOUT_PERIOD_DAYS}-day period you can request up to ${WITHDRAWAL_CAP_PERCENT}% of the account size.` },
 ];
 
 export const PAYOUT_TERMS = [
-  { k: "Payout period", v: `Every ${PAYOUT_PERIOD_DAYS} days` },
-  { k: "Withdrawal cap", v: `${WITHDRAWAL_CAP_PERCENT}% of the account size per period` },
-  { k: "Minimum request", v: `${MIN_WITHDRAWAL_PERCENT}% of the account size in realized profit` },
-  { k: "Profit split", v: SPLIT.map((s, i) => `${s}%${i === 0 ? " first" : ""}`).join(" · ") },
+  { k: "Reward period", v: `Every ${PAYOUT_PERIOD_DAYS} days` },
+  { k: "Reward cap", v: `${WITHDRAWAL_CAP_PERCENT}% of the account size per period` },
+  { k: "Minimum request", v: `${MIN_WITHDRAWAL_PERCENT}% of the account size in simulated gains` },
+  { k: "Reward share", v: SPLIT.map((s, i) => `${s}%${i === 0 ? " first" : ""}`).join(" · ") },
   { k: "Requirements", v: `KYC approved, ${FUNDED_MIN_WINNING_DAYS} Winning Days, no rule violations` },
-  { k: "News profit", v: "Profit from restricted-news trades is excluded" },
+  { k: "News trades", v: "Simulated gains from restricted-news trades are excluded" },
   { k: "Methods", v: "USDT or bank transfer" },
 ];
 

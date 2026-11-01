@@ -4,8 +4,8 @@ import { site } from "@/site.config";
 import { PAYOUT_PERIOD_DAYS, PAYOUT_STEPS, PAYOUT_TERMS, SPLIT_SUMMARY, WITHDRAWAL_CAP_PERCENT } from "@/lib/publicRules";
 
 export const metadata = {
-  title: `Performance Rewards & Payout Policy — Prop Firm Evaluation | ${site.name}`,
-  description: `Understand how performance rewards work at ${site.name}: bi-weekly 14-day reward cycles, up to 90% reward split, and payout guidelines for simulated funded accounts.`,
+  title: `Performance Reward Policy — Simulated Trading Evaluation | ${site.name}`,
+  description: `Understand how performance rewards work at ${site.name}: bi-weekly 14-day reward cycles, up to 90% reward share, and reward guidelines for qualified simulated accounts.`,
 };
 
 export default function PayoutPolicyPage() {
@@ -14,7 +14,7 @@ export default function PayoutPolicyPage() {
       <PageHero
         eyebrow="Performance Reward Policy"
         title={`Bi-Weekly Rewards Every\n**${PAYOUT_PERIOD_DAYS} Calendar Days**.`}
-        sub={`Withdraw up to ${WITHDRAWAL_CAP_PERCENT}% of your simulated account size each period, with a reward split that grows from ${SPLIT_SUMMARY.first}% to ${SPLIT_SUMMARY.max}%.`}
+        sub={`Request up to ${WITHDRAWAL_CAP_PERCENT}% of your simulated account size each period, with a reward share that grows from ${SPLIT_SUMMARY.first}% to ${SPLIT_SUMMARY.max}%.`}
         seed={31}
       />
 
@@ -53,7 +53,7 @@ export default function PayoutPolicyPage() {
             <h2 className="h2">{site.payouts.title}</h2>
             <Checklist items={site.payouts.items} bold />
             <p className="p-dark">
-              Performance rewards are disbursed exclusively to a wallet or bank account registered under your own verified legal name. Every withdrawal
+              Performance rewards are disbursed exclusively to a wallet or bank account registered under your own verified legal name. Every reward
               request is reviewed manually by our compliance team before disbursement.
             </p>
           </div>

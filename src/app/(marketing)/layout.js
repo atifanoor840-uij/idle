@@ -9,24 +9,24 @@ const dmSans = DM_Sans({ subsets: ["latin"], weight: ["300", "400", "500", "600"
 export const metadata = {
   metadataBase: new URL("https://idle4ex.com"),
   title: {
-    default: `${site.name} — Prop Firm Evaluation & Trading Challenges`,
+    default: `${site.name} | Simulated Trading Evaluations on MT5`,
     template: `%s | ${site.name}`,
   },
-  description: `Pass our trading challenge and get funded as a trader. ${site.name} offers skill-based programs, simulated accounts up to $200K, and up to 90% performance rewards for educational purposes.`,
+  description: `Join ${site.name} simulated trading programs: evaluations on MT5 demo accounts, simulated performance rewards, and up to $200K in simulated capital.`,
   keywords: [
     "trading challenge",
-    "prop firm evaluation",
-    "get funded as a trader",
+    "simulated trading evaluation",
+    "MT5 demo account",
     "forex evaluation program",
     "simulated accounts",
     "skill-based programs",
     "educational purposes",
     "trader evaluation platform",
-    "prop firm challenge",
+    "simulated trading program",
   ],
   authors: [{ name: site.name }],
   creator: site.name,
-  publisher: site.company,
+  publisher: site.legalEntity.name,
   robots: {
     index: true,
     follow: true,
@@ -36,13 +36,13 @@ export const metadata = {
     locale: "en_US",
     url: "https://idle4ex.com",
     siteName: site.name,
-    title: `${site.name} — Prop Firm Evaluation & Trading Challenges`,
-    description: `Pass our trading challenge and get funded as a trader. ${site.name} provides skill-based programs, simulated accounts up to $200K, and up to 90% performance rewards for educational purposes.`,
+    title: `${site.name} | Simulated Trading Evaluations on MT5`,
+    description: `Join ${site.name} simulated trading programs: evaluations on MT5 demo accounts, simulated performance rewards, and up to $200K in simulated capital.`,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${site.name} — Prop Firm Evaluation & Trading Challenges`,
-    description: `Pass our trading challenge and get funded as a trader. Explore skill-based programs on simulated accounts up to $200K.`,
+    title: `${site.name} | Simulated Trading Evaluations on MT5`,
+    description: `Join ${site.name} simulated trading programs: evaluations on MT5 demo accounts with up to $200K in simulated capital.`,
   },
 };
 

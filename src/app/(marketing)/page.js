@@ -21,8 +21,8 @@ import { getPublicPricing } from "@/lib/publicPricing";
 import { site } from "@/site.config";
 
 export const metadata = {
-  title: `${site.name} — Prop Firm Evaluation, Trading Challenges & Simulated Accounts`,
-  description: `Get funded as a trader with ${site.name}. Take our trading challenge or forex evaluation program, trade on simulated accounts up to $200K, and unlock access to a funded account upon successful evaluation.`,
+  title: `${site.name} | Simulated Trading Evaluations on MT5`,
+  description: `Join ${site.name} simulated trading programs: evaluations on MT5 demo accounts, simulated performance rewards, and up to $200K in simulated capital.`,
   alternates: {
     canonical: "/",
   },

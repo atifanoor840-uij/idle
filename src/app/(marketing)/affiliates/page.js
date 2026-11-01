@@ -5,14 +5,14 @@ import { affiliatePerks, affiliateTiers, contact } from "@/content.config";
 
 export const metadata = {
   title: `Affiliate Partner Program — Earn 10% on Trading Challenges | ${site.name}`,
-  description: `Partner with ${site.name}. Refer traders to our prop firm evaluation programs and earn 10% recurring commissions on all trading challenge purchases.`,
+  description: `Partner with ${site.name}. Refer traders to our simulated evaluation programs and earn 10% recurring commissions on all trading challenge purchases.`,
 };
 
 const steps = [
   { title: "Sign Up", text: "Create an account and access your Affiliate portal — your custom referral link is generated instantly." },
   { title: "Share with Traders", text: "Share your link or discount code with traders seeking a reliable forex evaluation program." },
   { title: "Earn Commissions", text: "Receive 10% commission on every trading challenge and evaluation retake purchased by your audience." },
-  { title: "Withdraw Rewards", text: "Withdraw commissions reliably via crypto or bank transfer, or redeem them toward new trading challenges." },
+  { title: "Receive Commissions", text: "Receive commissions reliably via crypto or bank transfer, or redeem them toward new evaluations." },
 ];
 
 export default function AffiliatesPage() {
@@ -21,7 +21,7 @@ export default function AffiliatesPage() {
       <PageHero
         eyebrow="Affiliate Partnership Program"
         title={"Partner With Idle4ex.\nEarn **10% Commission**."}
-        sub="Introduce your trading community to high-standard prop firm evaluation challenges and earn on every evaluation purchase."
+        sub="Introduce your trading community to high-standard simulated evaluation programs and earn on every evaluation purchase."
         seed={26}
       >
         <a href="/auth/signup" className="btn btn-primary">

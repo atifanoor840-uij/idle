@@ -53,7 +53,7 @@ export default function Pricing({ models, showHeader = false }) {
             <h2 className="h2 pricing-title">
               <Rich text={"Choose Your **Trading Challenge**.\nUnlock Up To **90%** Rewards."} />
             </h2>
-            <p className="pricing-sub">One-time evaluation fee, no monthly subscriptions. Pass the evaluation to earn access to a funded account upon successful evaluation.</p>
+            <p className="pricing-sub">One-time program fee, no monthly subscriptions. Pass the evaluation to qualify for a simulated account upon successful evaluation.</p>
           </div>
         )}
         <div className="pricing-controls">
