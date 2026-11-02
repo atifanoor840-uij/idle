@@ -2,11 +2,11 @@ import crypto from "crypto";
 import { db, type DBPixelEvent } from "./db";
 
 export const META_PIXEL_ID =
-  "1054522126934484";
+  "1142580308318971";
 
+// Must be a Conversions API token generated for the pixel above.
 export const META_CONVERSIONS_API_ACCESS_TOKEN =
-  process.env.META_CONVERSIONS_API_ACCESS_TOKEN ||
-  "EAAkcarrZAac0BSfLKtAASJBkBJMDBqdwbF7eulDb85jRkRMQoVPHPrg7SDNX4UTM61ebOkHEg5i4hrZCl9YPXCk2RfrZCsDrf7Psoc9pkZB9YubruWxW9WIcYRC3DRwVYQCHELtlZB1t43gjhdZAHubbNkAobYavzA6jw1vfSOpahZCuRa6HGxACj1YwwjXjgZDZD";
+  process.env.META_CONVERSIONS_API_ACCESS_TOKEN || "";
 
 function hashData(data?: string): string | undefined {
   if (!data) return undefined;
