@@ -77,7 +77,7 @@ const put = <T>(p: string, json: unknown) => request<T>(p, { method: "PUT", json
 export const api = {
   auth: {
     signup: (b: { name: string; email: string; password: string; phone?: string; country?: string; referralCode?: string; collaboratorCode?: string }) =>
-      post<{ user: User; emailSent: boolean; verificationPage: string }>("/api/auth/signup", { ...b, locale: "en" }),
+      post<{ user: User; emailSent?: boolean; verificationPage?: string; redirectTo?: string }>("/api/auth/signup", { ...b, locale: "en" }),
     signin: (email: string, password: string) => post<{ user: User; emailVerified: boolean }>("/api/auth/signin", { email, password }),
     signout: () => post("/api/auth/signout"),
     me: () => get<{ user: User }>("/api/auth/me"),

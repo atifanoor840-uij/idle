@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { api } from "@/lib/propApi";
 import { trackPixel } from "@/components/MetaPixel";
+import CountrySelect from "./CountrySelect";
 
 export default function SignupForm({ referralCode: initialRef, collaboratorCode }: { referralCode: string; collaboratorCode: string }) {
   const [f, setF] = useState({ name: "", email: "", password: "", country: "", phone: "", referralCode: initialRef });
@@ -28,7 +29,7 @@ export default function SignupForm({ referralCode: initialRef, collaboratorCode 
         collaboratorCode: collaboratorCode || undefined,
       });
       trackPixel("CompleteRegistration");
-      window.location.href = res.verificationPage || `/auth/verify-email?email=${encodeURIComponent(f.email.trim())}`;
+      window.location.href = res.redirectTo || res.verificationPage || `/auth/verify-email?email=${encodeURIComponent(f.email.trim())}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-up failed.");
       setBusy(false);
@@ -89,16 +90,10 @@ export default function SignupForm({ referralCode: initialRef, collaboratorCode 
         <small id="pw-hint">Must be at least 8 characters.</small>
       </label>
       <div className="auth-row">
-        <label className="auth-field">
-          <span>Country</span>
-          <input
-            autoComplete="country-name"
-            required
-            placeholder="e.g. United Kingdom"
-            value={f.country}
-            onChange={set("country")}
-          />
-        </label>
+        <div className="auth-field">
+          <label htmlFor="signup-country">Country</label>
+          <CountrySelect value={f.country} onChange={(country) => setF((s) => ({ ...s, country }))} />
+        </div>
         <label className="auth-field">
           <span>
             Phone <em>(optional)</em>

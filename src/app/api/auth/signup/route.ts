@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { db, hashPassword, DBUser } from "@/lib/db";
 import { sendDirectEmail } from "@/lib/email";
 import {
@@ -6,6 +7,11 @@ import {
   getVerificationUrl,
 } from "@/lib/emailVerification";
 import { BRAND_NAME } from "@/lib/brand";
+import { signSession } from "@/lib/session";
+
+// Temporarily off: new traders are signed in and sent straight to the
+// dashboard. Set to false to bring back the verify-email step.
+const SKIP_EMAIL_VERIFICATION = true;
 
 export async function POST(request: Request) {
   try {
@@ -72,7 +78,7 @@ export async function POST(request: Request) {
       role: "trader",
       status: "active",
       referredBy,
-      emailVerified: false,
+      emailVerified: SKIP_EMAIL_VERIFICATION,
       createdAt: new Date().toISOString(),
     };
 
@@ -99,13 +105,28 @@ export async function POST(request: Request) {
       id: "notif-" + Math.random().toString(36).substring(2, 11),
       userId,
       title: `Welcome to ${BRAND_NAME}`,
-      message: `Welcome ${name}! Your account has been initialized. Please verify your email address using the link we sent you.`,
+      message: SKIP_EMAIL_VERIFICATION
+        ? `Welcome ${name}! Your trader account is ready.`
+        : `Welcome ${name}! Your account has been initialized. Please verify your email address using the link we sent you.`,
       type: "success",
       channel: "in_app",
       status: "sent",
       read: false,
       sentAt: new Date().toISOString(),
     });
+
+    if (SKIP_EMAIL_VERIFICATION) {
+      const cookieStore = await cookies();
+      cookieStore.set("prop_session", signSession(userId), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      const { passwordHash, ...userResponse } = newUser;
+      return NextResponse.json({ success: true, user: userResponse, redirectTo: "/dashboard" });
+    }
 
     const { token } = await createEmailVerificationToken(userId);
     const verificationUrl = getVerificationUrl(request, token, safeLocale, normalizedEmail);
