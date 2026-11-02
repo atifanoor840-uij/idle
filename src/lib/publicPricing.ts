@@ -1,30 +1,46 @@
-// Server only (imports db): live challenge prices for the marketing site, read from the same
-// pricing_plans table the checkout uses (POST /api/orders prices from it too).
+// Server only (imports db): challenge prices for the marketing site. Displayed prices come from
+// DISPLAY_PRICES below (real price struck through + discounted price); plan ids are matched
+// from the pricing_plans table the checkout uses (POST /api/orders prices from it).
 import { db } from "./db";
 import { PUBLIC_MODELS, type PublicModel } from "./publicRules";
 import { getChallengeRule } from "./rulebook";
 
-export type PricedModel = PublicModel & { sizes: { planId: string; size: number; price: number }[] };
+export type PricedModel = PublicModel & {
+  sizes: { planId: string; size: number; price: number; realPrice: number }[];
+};
 
-const FALLBACK_PLANS: { id: string; model: "Two Step" | "One Step" | "Instant"; size: number; price: number }[] = [
-  { id: "pp-two-step-5k", model: "Two Step", size: 5000, price: 39 },
-  { id: "pp-two-step-10k", model: "Two Step", size: 10000, price: 79 },
-  { id: "pp-two-step-25k", model: "Two Step", size: 25000, price: 179 },
-  { id: "pp-two-step-50k", model: "Two Step", size: 50000, price: 299 },
-  { id: "pp-two-step-100k", model: "Two Step", size: 100000, price: 499 },
-  { id: "pp-two-step-200k", model: "Two Step", size: 200000, price: 949 },
-  { id: "pp-one-step-5k", model: "One Step", size: 5000, price: 49 },
-  { id: "pp-one-step-10k", model: "One Step", size: 10000, price: 99 },
-  { id: "pp-one-step-25k", model: "One Step", size: 25000, price: 219 },
-  { id: "pp-one-step-50k", model: "One Step", size: 50000, price: 349 },
-  { id: "pp-one-step-100k", model: "One Step", size: 100000, price: 579 },
-  { id: "pp-one-step-200k", model: "One Step", size: 200000, price: 1099 },
-  { id: "pp-instant-5k", model: "Instant", size: 5000, price: 99 },
-  { id: "pp-instant-10k", model: "Instant", size: 10000, price: 189 },
-  { id: "pp-instant-25k", model: "Instant", size: 25000, price: 399 },
-  { id: "pp-instant-50k", model: "Instant", size: 50000, price: 749 },
-  { id: "pp-instant-100k", model: "Instant", size: 100000, price: 1399 },
-];
+type Model = "Two Step" | "One Step" | "Instant";
+
+// [size, real price, discounted price]
+const DISPLAY_PRICES: Record<Model, [number, number, number][]> = {
+  "One Step": [
+    [3000, 48, 15],
+    [5000, 55, 16],
+    [10000, 71, 23],
+    [25000, 103, 29],
+    [50000, 159, 51],
+    [100000, 255, 73],
+    [200000, 359, 112],
+  ],
+  "Two Step": [
+    [3000, 39, 12],
+    [5000, 45, 13],
+    [10000, 69, 19],
+    [25000, 91, 27],
+    [50000, 141, 40],
+    [100000, 203, 64],
+    [200000, 333, 96],
+  ],
+  Instant: [
+    [10000, 119, 34],
+    [25000, 169, 53],
+    [50000, 309, 89],
+    [100000, 459, 142],
+    [200000, 819, 238],
+  ],
+};
+
+const slug = (model: Model) => model.toLowerCase().replace(" ", "-");
 
 export async function getPublicPricing(): Promise<PricedModel[]> {
   let plans: Awaited<ReturnType<typeof db.getPricingPlans>> = [];
@@ -33,20 +49,17 @@ export async function getPublicPricing(): Promise<PricedModel[]> {
   } catch (error) {
     console.error("Pricing: could not load pricing_plans", error);
   }
-  const active = plans
-    .filter((p) => String(p.status || "active").toLowerCase() === "active")
-    .map((p) => ({
-      ...p,
-      model: getChallengeRule(p.model).buyLabel,
-    }));
-
-  const source = active.length > 0 ? active : FALLBACK_PLANS;
+  const planIds = new Map(
+    plans.map((p) => [`${getChallengeRule(p.model).buyLabel}:${Number(p.size)}`, p.id])
+  );
 
   return PUBLIC_MODELS.map((m) => ({
     ...m,
-    sizes: source
-      .filter((p) => p.model === m.dbModel)
-      .map((p) => ({ planId: p.id, size: Number(p.size), price: Number(p.price) }))
-      .sort((a, b) => a.size - b.size),
+    sizes: (DISPLAY_PRICES[m.dbModel] || []).map(([size, realPrice, price]) => ({
+      planId: planIds.get(`${m.dbModel}:${size}`) || `pp-${slug(m.dbModel)}-${size / 1000}k`,
+      size,
+      price,
+      realPrice,
+    })),
   })).filter((m) => m.sizes.length > 0);
 }

@@ -38,9 +38,9 @@ export default function Pricing({ models, showHeader = false }) {
   const m = models[Math.min(mi, models.length - 1)];
   const s = m.sizes[Math.min(si, m.sizes.length - 1)];
 
-  const calcPrice = Math.round(
-    s.price * (1 + (weekendAddon ? 0.2 : 0) + (overnightAddon ? 0.1 : 0))
-  );
+  const addonFactor = 1 + (weekendAddon ? 0.2 : 0) + (overnightAddon ? 0.1 : 0);
+  const calcPrice = Math.round(s.price * addonFactor);
+  const calcRealPrice = s.realPrice ? Math.round(s.realPrice * addonFactor) : 0;
 
   const checkoutLink = `/challenges?size=${s.size}&weekend=${weekendAddon ? 1 : 0}&overnight=${overnightAddon ? 1 : 0}`;
 
@@ -92,6 +92,7 @@ export default function Pricing({ models, showHeader = false }) {
           <div className="card card-dark plan-price">
             <div className="world-dots" aria-hidden="true" />
             <span className="plan-price-lbl">One-time fee</span>
+            {calcRealPrice > calcPrice && <div className="plan-price-old">{money(calcRealPrice)}</div>}
             <div className="plan-price-num">{money(calcPrice)}</div>
             <span className="plan-price-sub">
               {weekendAddon || overnightAddon ? "Includes selected add-ons" : "No subscription · no hidden fees"}
