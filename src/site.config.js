@@ -17,7 +17,7 @@ export const site = {
   },
 
   links: {
-    start: "/pricing",
+    start: "/auth/signup",
     login: "/dashboard",
     trial: null,
     platform: "#",
