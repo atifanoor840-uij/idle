@@ -16,10 +16,6 @@ export function TopBar() {
           <a href="/faq">FAQ</a>
         </div>
         <div className="tb-right">
-          <a href={site.promo.href} className="tb-promo">
-            <span className="badge">NEW</span>
-            {site.promo.text}
-          </a>
           <a href="#">Social</a>
           <a href={site.links.platform}>Web Platform</a>
           <a href={site.links.start}>Start Challenge</a>

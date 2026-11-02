@@ -45,14 +45,6 @@ export const site = {
 
   heroSlides: [
     {
-      title: "Proven Discipline.\n**Simulated Evaluation**.",
-      sub: "Take our trading evaluation, prove your consistency on MT5 demo accounts, and qualify for a simulated account upon successful evaluation.",
-    },
-    {
-      title: "Become A Qualified Trader\nWith **Simulated Accounts**.",
-      sub: "Experience a realistic forex evaluation program with transparent drawdown rules and up to 90% simulated reward share.",
-    },
-    {
       title: "Skill-Based Programs.\n**Zero Hidden Rules**.",
       sub: "Straightforward trading evaluations with 4% daily and 6% static loss limits, designed for educational purposes and long-term trader growth.",
     },

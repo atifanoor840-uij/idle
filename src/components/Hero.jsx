@@ -8,6 +8,7 @@ export default function Hero() {
   const [active, setActive] = useState(0);
 
   useEffect(() => {
+    if (slides.length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const t = setInterval(() => setActive((a) => (a + 1) % slides.length), 6000);
     return () => clearInterval(t);
@@ -35,19 +36,21 @@ export default function Hero() {
         <a href={site.links.start} className="btn btn-primary">
           Start Trading Challenge
         </a>
-        <div className="dots" role="tablist">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              role="tab"
-              aria-selected={i === active}
-              aria-label={`Slide ${i + 1}`}
-              className={`dot ${i === active ? "active" : ""}`}
-              onClick={() => setActive(i)}
-            />
-          ))}
-        </div>
+        {slides.length > 1 && (
+          <div className="dots" role="tablist">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                role="tab"
+                aria-selected={i === active}
+                aria-label={`Slide ${i + 1}`}
+                className={`dot ${i === active ? "active" : ""}`}
+                onClick={() => setActive(i)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="hero-stats">
