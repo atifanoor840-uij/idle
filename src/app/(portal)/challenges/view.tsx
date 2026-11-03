@@ -7,6 +7,7 @@ import { MODEL_LABEL, useApi } from "@/lib/portal-data";
 import { CHALLENGE_RULES, flexPriceSplit, normalizeChallengeRuleKey, WEEKEND_HOLDING_ADDON_PERCENT, OVERNIGHT_HOLDING_ADDON_PERCENT } from "@/lib/rulebook";
 import { MANUAL_CRYPTO_PAYMENT_METHOD, MANUAL_WALLETS } from "@/config/manualWallets";
 import { trackPixel } from "@/components/MetaPixel";
+import { CARD_ICONS, CRYPTO_ICONS, PaymentIcons, WHOP_ICONS } from "@/components/portal/PaymentIcons";
 import { btnPrimary, btnSecondary, Card, cx, FormMessage, LoadState } from "@/components/portal/ui";
 import { Field, inputCls, KV, PageHeader, Segmented, Tabs } from "@/components/portal/kit";
 
@@ -14,11 +15,20 @@ const k = (n: number) => (n >= 1_000_000 ? `$${n / 1_000_000}M` : `$${n / 1000}K
 const MODEL_ORDER: PlanModel[] = ["Two Step", "One Step", "Instant", "Flex"];
 const PLATFORMS = ["MT5", "MT4", "cTrader"] as const;
 const CARD = "Paddle";
+// Hosted NOWPayments invoice; /api/orders/pay routes any non-manual "crypto" method there.
+const CRYPTO_GATEWAY = "Crypto (NOWPayments)";
+// Whop hosted checkout; /api/orders/pay routes any method containing "whop" there.
+const WHOP = "Whop";
 
 export default function ChallengesView() {
   const { data, error, loading, reload } = useApi(async () => {
     const [plans, geo] = await Promise.all([api.pricingPlans(), api.geo().catch(() => null)]);
-    return { plans: plans.plans.filter((p) => String(p.status).toLowerCase() === "active"), cardOk: geo?.cardPaymentAvailable !== false };
+    return {
+      plans: plans.plans.filter((p) => String(p.status).toLowerCase() === "active"),
+      cardOk: geo?.cardPaymentAvailable !== false,
+      cryptoGatewayOk: geo?.cryptoGatewayAvailable === true,
+      whopOk: geo?.whopAvailable === true,
+    };
   });
 
   const models = useMemo(() => MODEL_ORDER.filter((m) => data?.plans.some((p) => p.model === m)), [data]);
@@ -29,8 +39,12 @@ export default function ChallengesView() {
 
   const [platform, setPlatform] = useState<(typeof PLATFORMS)[number]>("MT5");
   const methods = [
-    ...(data?.cardOk ? [{ key: CARD, label: "Card / Apple Pay / Google Pay" }] : []),
-    ...(MANUAL_WALLETS.length ? [{ key: MANUAL_CRYPTO_PAYMENT_METHOD, label: "Crypto (USDT / BTC)" }] : []),
+    ...(data?.cardOk ? [{ key: CARD, label: "Card / Apple Pay / Google Pay", icons: CARD_ICONS }] : []),
+    ...(data?.whopOk ? [{ key: WHOP, label: "Card / PayPal (Whop)", icons: WHOP_ICONS }] : []),
+    ...(data?.cryptoGatewayOk ? [{ key: CRYPTO_GATEWAY, label: "Crypto — 100+ coins (NOWPayments)", icons: CRYPTO_ICONS }] : []),
+    ...(MANUAL_WALLETS.length
+      ? [{ key: MANUAL_CRYPTO_PAYMENT_METHOD, label: "Crypto (USDT / BTC)", icons: [...new Set(MANUAL_WALLETS.map((w) => w.asset.toLowerCase()))] }]
+      : []),
   ];
   const [method, setMethod] = useState("");
   const payMethod = methods.find((m) => m.key === method)?.key ?? methods[0]?.key ?? "";
@@ -193,9 +207,12 @@ export default function ChallengesView() {
           {methods.length ? (
             <div className="grid gap-2" role="radiogroup" aria-label="Payment method">
               {methods.map((m) => (
-                <label key={m.key} className={cx("flex cursor-pointer items-center gap-3 rounded-tile border px-4 py-3 text-[14px]", payMethod === m.key ? "border-brand-strong bg-brand-soft" : "border-line")}>
-                  <input type="radio" name="method" checked={payMethod === m.key} onChange={() => setMethod(m.key)} className="accent-[var(--brand-strong)]" />
-                  {m.label}
+                <label key={m.key} className={cx("flex cursor-pointer items-start gap-3 rounded-tile border px-4 py-3 text-[14px]", payMethod === m.key ? "border-brand-strong bg-brand-soft" : "border-line")}>
+                  <input type="radio" name="method" checked={payMethod === m.key} onChange={() => setMethod(m.key)} className="mt-1 accent-[var(--brand-strong)]" />
+                  <span className="grid min-w-0 gap-2">
+                    {m.label}
+                    <PaymentIcons icons={m.icons} />
+                  </span>
                 </label>
               ))}
             </div>

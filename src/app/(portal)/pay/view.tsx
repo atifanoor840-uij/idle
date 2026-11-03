@@ -112,7 +112,7 @@ export default function PayView({ orderId, platform, returnState }: { orderId: s
       window.location.href = checkoutUrl;
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) return goToSignin();
-      setErr(e instanceof ApiError && e.status === 503 ? "Card payments are temporarily unavailable. Please try again later or contact support." : e instanceof Error ? e.message : "Could not start the payment.");
+      setErr(e instanceof ApiError && e.status === 503 ? "This payment method is temporarily unavailable. Please try again later or contact support." : e instanceof Error ? e.message : "Could not start the payment.");
       setBusy(false);
     }
   };
@@ -138,6 +138,9 @@ export default function PayView({ orderId, platform, returnState }: { orderId: s
 
   const { model, size } = planInfo(order);
   const crypto = isManualCryptoMethod(order.paymentMethod);
+  // Hosted crypto invoice (NOWPayments): same redirect flow as card, crypto wording.
+  const gatewayCrypto = !crypto && String(order.paymentMethod || "").toLowerCase().includes("crypto");
+  const anyCrypto = crypto || gatewayCrypto;
   const awaitingReview = crypto && String(order.gatewayRef || "").startsWith("manual:");
   const pending = order.status.toLowerCase() === "pending";
   const ret = RETURN_COPY[returnState];
@@ -148,7 +151,7 @@ export default function PayView({ orderId, platform, returnState }: { orderId: s
       {ret && pending && <FormMessage tone={ret.tone}>{ret.text}</FormMessage>}
 
       <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-        <Card title={crypto ? "Pay with crypto" : "Pay with card"}>
+        <Card title={anyCrypto ? "Pay with crypto" : "Pay with card"}>
           {!pending ? (
             <div className="flex items-start gap-3 text-[15px] text-ink">
               <CheckCircle2 className="mt-0.5 shrink-0 text-success" />
@@ -172,7 +175,10 @@ export default function PayView({ orderId, platform, returnState }: { orderId: s
           ) : (
             <div className="space-y-4">
               <p className="flex items-center gap-2 text-[14px] text-ink-2">
-                <CreditCard size={18} /> You&apos;ll be redirected to our secure payment provider to finish.
+                {gatewayCrypto ? <Wallet size={18} /> : <CreditCard size={18} />}
+                {gatewayCrypto
+                  ? "You'll be redirected to NOWPayments to pay with the coin of your choice. Your account is created automatically once the payment confirms."
+                  : "You'll be redirected to our secure payment provider to finish."}
               </p>
               {err && <FormMessage tone="error">{err}</FormMessage>}
               <button type="button" onClick={payCard} disabled={busy} className={cx(btnPrimary, "w-full")}>
@@ -188,7 +194,7 @@ export default function PayView({ orderId, platform, returnState }: { orderId: s
             {order.parentOrderId && <KV k="Payment" v="Flex activation (remaining balance)" />}
             {!!order.activationFee && <KV k="Due after passing" v={money(order.activationFee)} />}
             <KV k="Platform" v={platform} />
-            <KV k="Method" v={<span className="inline-flex items-center gap-1.5">{crypto ? <Wallet size={14} /> : <CreditCard size={14} />}{crypto ? "Crypto" : "Card"}</span>} />
+            <KV k="Method" v={<span className="inline-flex items-center gap-1.5">{anyCrypto ? <Wallet size={14} /> : <CreditCard size={14} />}{anyCrypto ? "Crypto" : "Card"}</span>} />
             {order.couponUsed && <KV k="Code" v={order.couponUsed} />}
             {order.weekendHoldingAddon && <KV k="Weekend add-on" v="Included" />}
             {order.overnightHoldingAddon && <KV k="Overnight add-on" v="Included" />}

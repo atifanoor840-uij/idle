@@ -86,7 +86,7 @@ export const api = {
   },
   pricingPlans: () => get<{ plans: PricingPlan[] }>("/api/pricing-plans"),
   checkCoupon: (code: string) => get<{ coupon: { code: string; discountPercent: number } }>(`/api/coupons?code=${encodeURIComponent(code)}`),
-  geo: () => get<{ cardPaymentAvailable: boolean; country: string }>("/api/geo"),
+  geo: () => get<{ cardPaymentAvailable: boolean; cryptoGatewayAvailable?: boolean; whopAvailable?: boolean; country: string }>("/api/geo"),
   orders: {
     list: () => get<{ orders: Order[] }>("/api/orders"),
     /** 409 → ApiError with data.code === "PRICE_CHANGED" and data.amount */

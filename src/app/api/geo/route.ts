@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { detectCountry } from "@/lib/geo";
+import { isNowPaymentsConfigured, isWhopConfigured } from "@/config/payments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +17,8 @@ export async function GET(request: Request) {
       country: geo.country,
       isPakistan: geo.isPakistan,
       cardPaymentAvailable: !geo.isPakistan,
+      cryptoGatewayAvailable: isNowPaymentsConfigured(),
+      whopAvailable: isWhopConfigured(),
       source: geo.source,
     },
     { headers: { "Cache-Control": "no-store" } },
