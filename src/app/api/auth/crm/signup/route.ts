@@ -1,12 +1,29 @@
+import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db, hashPassword, DBUser } from "@/lib/db";
 import { signSession } from "@/lib/session";
 
+// Constant-time compare so the passcode can't be guessed character by character from response timing.
+function passcodeMatches(given: string, expected: string) {
+  const a = crypto.createHash("sha256").update(given).digest();
+  const b = crypto.createHash("sha256").update(expected).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
 export async function POST(request: Request) {
   try {
+    // Admin sign-up is closed unless a passcode is configured; there is no default.
+    const expectedPasscode = process.env.CRM_ADMIN_PASSCODE || "";
+    if (expectedPasscode.length < 8) {
+      return NextResponse.json({ error: "Admin sign-up is disabled. Set CRM_ADMIN_PASSCODE (8+ characters) to enable it." }, { status: 503 });
+    }
+
     const body = await request.json();
-    const { name, email, password, passcode } = body;
+    const name = String(body.name || "").trim().slice(0, 120);
+    const email = String(body.email || "").trim().toLowerCase();
+    const password = String(body.password || "");
+    const passcode = String(body.passcode || "");
 
     if (!name || !email || !password || !passcode) {
       return NextResponse.json(
@@ -14,10 +31,14 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
+    }
+    if (password.length < 10) {
+      return NextResponse.json({ error: "Admin passwords must be at least 10 characters." }, { status: 400 });
+    }
 
-    // Verify admin passcode
-    const expectedPasscode = process.env.CRM_ADMIN_PASSCODE || "ADMIN123";
-    if (passcode !== expectedPasscode) {
+    if (!passcodeMatches(passcode, expectedPasscode)) {
       return NextResponse.json(
         { error: "Invalid Admin Security Passcode. Access denied." },
         { status: 403 }
@@ -40,7 +61,7 @@ export async function POST(request: Request) {
       name,
       email,
       phone: "",
-      country: "United States",
+      country: "United Kingdom",
       passwordHash: await hashPassword(password),
       role: "admin", // Admin role for CRM Portal
       status: "active",
@@ -48,19 +69,6 @@ export async function POST(request: Request) {
     };
 
     await db.saveUser(newUser);
-
-    // Create default welcome notification for admin
-    await db.saveNotification({
-      id: "notif-" + Math.random().toString(36).substring(2, 11),
-      userId: userId,
-      title: "Welcome to Administrative Console",
-      message: `Welcome ${name}! Your administrator account has been initialized. You have full access to the CRM telemetry and trader directory.`,
-      type: "success",
-      channel: "in_app",
-      status: "sent",
-      read: false,
-      sentAt: new Date().toISOString(),
-    });
 
     await db.saveNotification({
       id: "notif-" + Math.random().toString(36).substring(2, 11),
@@ -89,6 +97,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, user: userResponse });
   } catch (error: any) {
     console.error("CRM Sign-up API error:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: "Could not create the admin account." }, { status: 500 });
   }
 }

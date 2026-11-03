@@ -24,8 +24,8 @@ async function requireAdmin(): Promise<SessionUser> {
   const userId = readSessionUserId(await cookies());
   const user = userId ? await db.getUserById(userId) : null;
   if (!user || user.status !== "active" || user.role !== "admin") {
-    const next = (await headers()).get("x-pathname") || "/admin";
-    redirect(`/auth/admin?next=${encodeURIComponent(next)}${user ? "&denied=1" : ""}`);
+    const next = (await headers()).get("x-pathname") || "/idlecrm";
+    redirect(`/auth/idlecrm?next=${encodeURIComponent(next)}${user ? "&denied=1" : ""}`);
   }
   return {
     id: user.id,

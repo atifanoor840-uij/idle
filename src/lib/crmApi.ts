@@ -1,4 +1,4 @@
-// Admin-only API calls used by the CRM (/admin). Same /api routes as the trader
+// Admin-only API calls used by the CRM (/idlecrm). Same /api routes as the trader
 // portal; the server returns everyone's data (plus userName/userEmail) for admins.
 import { ApiError, type Order, type Payout, type PricingPlan, type TradingAccount, type User } from "./propApi";
 
@@ -21,7 +21,7 @@ export type AuditLog = { id: string; userId: string; userName: string; targetId:
 export function goToAdminSignin() {
   if (typeof window === "undefined") return;
   const next = window.location.pathname + window.location.search;
-  window.location.href = `/auth/admin?next=${encodeURIComponent(next)}`;
+  window.location.href = `/auth/idlecrm?next=${encodeURIComponent(next)}`;
 }
 
 async function request<T>(path: string, init: RequestInit & { json?: unknown } = {}): Promise<T> {
@@ -47,6 +47,7 @@ const newest = <T extends { createdAt?: string }>(rows: T[]) =>
 
 export const crm = {
   signin: (email: string, password: string) => post<{ user: User }>("/api/auth/crm/signin", { email, password }),
+  signup: (input: { name: string; email: string; password: string; passcode: string }) => post<{ user: User }>("/api/auth/crm/signup", input),
   users: {
     list: () => get<{ users: User[] }>("/api/users").then((r) => ({ users: newest(r.users) })),
     update: (b: { userId: string; name?: string; email?: string; phone?: string; country?: string; role?: User["role"]; status?: User["status"]; newPassword?: string }) =>

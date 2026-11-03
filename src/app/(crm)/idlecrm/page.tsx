@@ -35,10 +35,10 @@ export default function AdminOverview() {
   const newUsers = (data?.users ?? []).filter((u) => now - new Date(u.createdAt).getTime() < 7 * DAY).length;
 
   const queues = [
-    { label: "Crypto payments to verify", count: proofsWaiting.length, href: "/admin/orders?filter=proof" },
-    { label: "Accounts to deliver", count: toDeliver.length, href: "/admin/accounts" },
-    { label: "Payout requests", count: payoutQueue.length, href: "/admin/payouts" },
-    { label: "KYC to review", count: kycQueue.length, href: "/admin/kyc" },
+    { label: "Crypto payments to verify", count: proofsWaiting.length, href: "/idlecrm/orders?filter=proof" },
+    { label: "Accounts to deliver", count: toDeliver.length, href: "/idlecrm/accounts" },
+    { label: "Payout requests", count: payoutQueue.length, href: "/idlecrm/payouts" },
+    { label: "KYC to review", count: kycQueue.length, href: "/idlecrm/kyc" },
   ];
 
   return (
@@ -67,7 +67,7 @@ export default function AdminOverview() {
           </div>
 
           <div className="grid gap-5 xl:grid-cols-2">
-            <Card title="Latest orders" actions={<Link href="/admin/orders" className="text-[14px] font-medium text-brand-strong hover:underline">All orders</Link>}>
+            <Card title="Latest orders" actions={<Link href="/idlecrm/orders" className="text-[14px] font-medium text-brand-strong hover:underline">All orders</Link>}>
               <ul className="divide-y divide-line">
                 {o.slice(0, 8).map((x) => {
                   const p = planInfo(x);
@@ -87,7 +87,7 @@ export default function AdminOverview() {
                 {!o.length && <li className="py-6 text-center text-[14px] text-muted">No orders yet.</li>}
               </ul>
             </Card>
-            <Card title="Payout queue" actions={<Link href="/admin/payouts" className="text-[14px] font-medium text-brand-strong hover:underline">All payouts</Link>}>
+            <Card title="Payout queue" actions={<Link href="/idlecrm/payouts" className="text-[14px] font-medium text-brand-strong hover:underline">All payouts</Link>}>
               <ul className="divide-y divide-line">
                 {payoutQueue.slice(0, 8).map((p) => (
                   <li key={p.id} className="flex items-center justify-between gap-3 py-3">

@@ -6,12 +6,20 @@ export const metadata = { title: `Admin Sign In — ${site.name}`, robots: { ind
 
 export default async function AdminSigninPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const next = safeNext(sp.next, "/admin");
+  const next = safeNext(sp.next, "/idlecrm");
   return (
-    <AuthShell title="Admin sign in" sub="Staff access to the CRM.">
+    <AuthShell
+      title="Admin sign in"
+      sub="Staff access to the CRM."
+      footer={
+        <>
+          New staff member? <a href="/auth/idlecrm/signup">Create admin account</a>
+        </>
+      }
+    >
       <SigninForm
         mode="admin"
-        next={next.startsWith("/admin") ? next : "/admin"}
+        next={next.startsWith("/idlecrm") ? next : "/idlecrm"}
         notice={sp.denied ? "This account does not have admin access. Sign in with an admin account." : undefined}
       />
     </AuthShell>

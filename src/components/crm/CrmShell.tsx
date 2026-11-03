@@ -30,14 +30,14 @@ export default function CrmShell({ user, children }: { user: SessionUser; childr
     try {
       await api.auth.signout();
     } finally {
-      window.location.href = "/auth/admin";
+      window.location.href = "/auth/idlecrm";
     }
   };
 
   return (
     <SessionProvider user={user}>
       <div className="min-h-dvh bg-canvas">
-        <Sidebar open={drawer} collapsed={collapsed} onClose={() => setDrawer(false)} groups={crmNav} homeHref="/admin" subtitle="Admin CRM" />
+        <Sidebar open={drawer} collapsed={collapsed} onClose={() => setDrawer(false)} groups={crmNav} homeHref="/idlecrm" subtitle="Admin CRM" />
         <div className={cx("transition-[padding] duration-200", collapsed ? "lg:pl-[76px]" : "lg:pl-[248px]")}>
           <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-line bg-surface px-4 md:px-6">
             <button type="button" className={iconBtn} aria-label="Toggle menu" onClick={onMenu}>
