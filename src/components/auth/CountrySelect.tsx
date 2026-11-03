@@ -8,7 +8,9 @@ type Option = { code: string; label: string };
 const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
 
 // Every ISO country the flag set covers, named in English and sorted A–Z.
+// The set also has sub-regions like "GE-AB", which DisplayNames rejects.
 const OPTIONS: Option[] = countries
+  .filter((code) => /^[A-Z]{2}$/.test(code))
   .map((code) => ({ code, label: regionNames.of(code) || code }))
   .filter((o) => o.label !== o.code)
   .sort((a, b) => a.label.localeCompare(b.label));
