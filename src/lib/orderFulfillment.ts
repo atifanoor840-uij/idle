@@ -126,8 +126,8 @@ export async function notifyCredentialsDelivered(account: DBTradingAccount) {
   await db.saveNotification({
     id: "notif-" + Math.random().toString(36).substring(2, 11),
     userId: account.userId,
-    title: "Trading Credentials Delivered",
-    message: `Your account credentials have been delivered for Account ${account.login}. Platform: ${account.platform} | Server: ${account.server} | Master Pass: ${account.passwordMaster}. You can now log in to your trading platform.`,
+    title: "Your Simulated Account Is Ready",
+    message: `Your simulated account login details are ready. Log in to your trading platform and start your evaluation. Login: ${account.login} | Platform: ${account.platform} | Server: ${account.server} | Master Pass: ${account.passwordMaster}`,
     type: "success",
     channel: "email",
     status: "sent",

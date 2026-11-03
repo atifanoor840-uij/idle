@@ -331,11 +331,11 @@ export async function PUT(request: Request) {
           await db.saveNotification({
             id: "notif-" + Math.random().toString(36).substring(2, 11),
             userId: account.userId,
-            title: status === "Passed" ? "Challenge Account Passed" : "Challenge Account Failed",
+            title: status === "Passed" ? "Evaluation Passed" : "Evaluation Not Passed",
             message:
               status === "Passed"
-                ? `Account ${account.id} has been marked as passed. Your next stage or certificate will be processed automatically where applicable.`
-                : `Account ${account.id} has been marked as failed. Please review the rules and contact support if you believe this is incorrect.`,
+                ? `Congratulations — simulated account ${account.id} has passed its evaluation. Your next phase or certificate will be issued automatically where applicable.`
+                : `Simulated account ${account.id} did not pass its evaluation because a trading rule was breached. Review the Trading Rules, or contact support if you believe this is incorrect. You can start a new evaluation at any time.`,
             type: status === "Passed" ? "success" : "error",
             channel: "email",
             status: "sent",
@@ -499,8 +499,8 @@ export async function PUT(request: Request) {
       await db.saveNotification({
         id: "notif-" + Math.random().toString(36).substring(2, 11),
         userId: account.userId,
-        title: "Trading Credentials Delivered",
-        message: `Your account credentials have been delivered for Account ${login}. Platform: ${platform} | Server: ${server} | Master Pass: ${passwordMaster}. You can now log in to your trading platform.`,
+        title: "Your Simulated Account Is Ready",
+        message: `Your simulated account login details are ready. Log in to your trading platform and start your evaluation. Login: ${login} | Platform: ${platform} | Server: ${server} | Master Pass: ${passwordMaster}`,
         type: "success",
         channel: "email",
         status: "sent",

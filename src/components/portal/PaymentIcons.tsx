@@ -90,7 +90,6 @@ const COIN_BADGES: Record<string, Badge> = {
 };
 
 export const CARD_ICONS = ["visa", "mastercard", "amex", "applepay", "googlepay", "amazonpay"];
-export const WHOP_ICONS = ["visa", "mastercard", "amex", "paypal", "applepay", "googlepay"];
 export const CRYPTO_ICONS = ["btc", "eth", "usdt", "usdc", "bnb", "sol", "trx", "ltc"];
 
 export function PaymentIcons({ icons }: { icons: string[] }) {

@@ -64,7 +64,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, provider: "codapay", checkoutUrl: checkout.checkoutUrl, gatewayRef: order.gatewayRef });
     }
 
-    if (method.includes("whop")) {
+    // Card payments always go to Whop when it is configured, including older Paddle / card orders.
+    const isCardMethod = !method.includes("crypto") && !method.includes("codapay");
+    if (method.includes("whop") || (isCardMethod && isWhopConfigured())) {
       if (!isWhopConfigured()) return NextResponse.json({ error: "Whop is not configured. Set WHOP_API_KEY, WHOP_COMPANY_ID and WHOP_WEBHOOK_SECRET." }, { status: 503 });
       const checkout = await createWhopCheckout(requestWithLocale, order, user, planName, platform || "MT5");
       order.gatewayRef = `whop:${checkout.id}:${platform || "MT5"}`;
