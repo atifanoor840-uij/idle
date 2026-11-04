@@ -6,7 +6,7 @@ import { crm, type AdminOrder } from "@/lib/crmApi";
 import { MODEL_LABEL, planInfo } from "@/lib/portal-data";
 import { Card, cx, FormMessage, LoadState } from "@/components/portal/ui";
 import { Badge, inputCls, PageHeader, Tabs, tableWrap, tdCls, thCls, trCls } from "@/components/portal/kit";
-import { ConfirmAction, dangerLink, errMsg, fmtDateTime, linkBtn, matches, Modal, Person, SearchBox, useAdmin } from "@/components/crm/kit";
+import { ConfirmAction, dangerLink, errMsg, fmtDateTime, linkBtn, matches, Modal, Person, RefreshButton, SearchBox, useAdmin } from "@/components/crm/kit";
 
 // What each status does on the server (PUT /api/orders) — shown before confirming.
 const STATUS_ACTIONS: { value: string; label: string; help: string }[] = [
@@ -92,7 +92,7 @@ export default function OrdersDesk() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Orders" sub="Confirm payments and move orders through their lifecycle." />
+      <PageHeader title="Orders" sub="Confirm payments and move orders through their lifecycle." actions={<RefreshButton onRefresh={reload} loading={loading} />} />
       <Card>
         <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <Tabs<Filter>
@@ -108,8 +108,9 @@ export default function OrdersDesk() {
           <SearchBox value={q} onChange={setQ} placeholder="Search order, trader, code…" />
         </div>
         {msg && <div className="mb-4"><FormMessage tone="error">{msg}</FormMessage></div>}
-        <LoadState loading={loading} error={error} onRetry={reload} />
-        {!loading && !error && (
+        {/* Keep the table on screen while a refresh runs. */}
+        <LoadState loading={loading && !data} error={error} onRetry={reload} />
+        {(!loading || data) && !error && (
           <div className={tableWrap}>
             <table className="w-full min-w-[1080px] border-collapse">
               <thead className="bg-surface-2">

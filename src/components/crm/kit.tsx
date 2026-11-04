@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Search, X } from "lucide-react";
+import { RefreshCw, Search, X } from "lucide-react";
 import { goToAdminSignin } from "@/lib/crmApi";
 import { useApi } from "@/lib/portal-data";
 import { btnPrimary, btnSecondary, cx, FormMessage } from "@/components/portal/ui";
@@ -13,6 +13,26 @@ export function useAdmin<T>(fn: () => Promise<T>, deps: unknown[] = []) {
 
 export const fmtDateTime = (iso?: string) =>
   iso ? new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
+
+/** Reloads the page's data in place; shows when it was last refreshed. */
+export function RefreshButton({ onRefresh, loading }: { onRefresh: () => unknown; loading: boolean }) {
+  const [at, setAt] = useState(() => new Date());
+  const wasLoading = useRef(loading);
+  useEffect(() => {
+    if (wasLoading.current && !loading) setAt(new Date());
+    wasLoading.current = loading;
+  }, [loading]);
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-[12.5px] text-muted" aria-live="polite">
+        {loading ? "Refreshing…" : `Updated ${at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
+      </span>
+      <button type="button" onClick={() => void onRefresh()} disabled={loading} className={btnSecondary}>
+        <RefreshCw size={16} className={cx(loading && "animate-spin")} /> Refresh
+      </button>
+    </div>
+  );
+}
 
 export const errMsg = (e: unknown) => (e instanceof Error ? e.message : "Something went wrong.");
 

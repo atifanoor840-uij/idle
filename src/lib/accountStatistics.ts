@@ -4,8 +4,9 @@ import { STATS_FAILED_RETRY_MS, STATS_REFRESH_MS, getStatisticsSyncMeta } from "
 export const STATISTICS_API_BASE_URL =
   process.env.STATISTICS_API_BASE_URL || "https://showmytrades.com/api/statistics";
 
-// ShowMyTrades allows 10 requests/sec. Space calls out so a burst (admin loading
-// every account at once) stays well under it.
+// ShowMyTrades rate-limits per minute (30/min free, 120/min Pro — docs/api/conventions).
+// Space calls out so a burst (admin loading every account at once) is smoothed; a 429
+// is recorded and retried after STATS_FAILED_RETRY_MS.
 const MIN_REQUEST_GAP_MS = 150;
 
 type AccountStatisticsPayload = {

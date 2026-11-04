@@ -6,7 +6,7 @@ import { crm } from "@/lib/crmApi";
 import { MODEL_LABEL, planInfo } from "@/lib/portal-data";
 import { Card, cx, LoadState, StatTile } from "@/components/portal/ui";
 import { Badge, PageHeader } from "@/components/portal/kit";
-import { fmtDateTime, Person, useAdmin } from "@/components/crm/kit";
+import { fmtDateTime, Person, RefreshButton, useAdmin } from "@/components/crm/kit";
 
 const DAY = 86400000;
 const isPaid = (s: string) => !["pending", "payment failed", "failed", "cancelled"].includes(s.toLowerCase());
@@ -43,8 +43,9 @@ export default function AdminOverview() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Overview" sub="What needs your attention right now." />
-      <LoadState loading={loading} error={error} onRetry={reload} />
+      <PageHeader title="Overview" sub="What needs your attention right now." actions={<RefreshButton onRefresh={reload} loading={loading} />} />
+      {/* Keep the current numbers on screen while a refresh runs. */}
+      <LoadState loading={loading && !data} error={error} onRetry={reload} />
       {data && (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

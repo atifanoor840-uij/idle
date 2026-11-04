@@ -5,6 +5,7 @@ import { money } from "@/lib/mock";
 import { crm, type AdminAccount, type InventoryItem } from "@/lib/crmApi";
 import type { Order } from "@/lib/propApi";
 import { MODEL_LABEL, planInfo } from "@/lib/portal-data";
+import { getStatisticsDataSyncedAt } from "@/lib/statisticsSync";
 import { btnPrimary, btnSecondary, Card, cx, FormMessage, LoadState } from "@/components/portal/ui";
 import { Badge, Field, inputCls, PageHeader, Tabs, tableWrap, tdCls, thCls, trCls } from "@/components/portal/kit";
 import { ConfirmAction, dangerLink, errMsg, fmtDateTime, linkBtn, matches, Modal, Person, SearchBox, useAdmin } from "@/components/crm/kit";
@@ -402,6 +403,14 @@ export default function AccountsDesk() {
                       </td>
                       <td className={cx(tdCls, "text-[12.5px] text-muted")}>
                         <div>{r.statisticsUpdatedAt ? fmtDateTime(r.statisticsUpdatedAt) : "—"}</div>
+                        {getStatisticsDataSyncedAt(r.statisticsPayload) && (
+                          <div className="text-[11px]" title="When ShowMyTrades last synced the trading account">
+                            Data synced {fmtDateTime(getStatisticsDataSyncedAt(r.statisticsPayload)!)}
+                          </div>
+                        )}
+                        {r.statisticsPayload?._statsSync?.lastError && (
+                          <div className="text-[11px] text-danger">{String(r.statisticsPayload._statsSync.lastError)}</div>
+                        )}
                         {r.graphLink ? (
                           <a
                             href={r.graphLink}

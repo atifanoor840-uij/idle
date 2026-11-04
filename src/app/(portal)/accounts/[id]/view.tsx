@@ -39,6 +39,7 @@ import { MANUAL_CRYPTO_PAYMENT_METHOD, MANUAL_WALLETS } from "@/config/manualWal
 import { fmtDate, toUiAccount, useApi, type AccountRules, type RuleCheck } from "@/lib/portal-data";
 import { BREACH_APPEAL_WINDOW_DAYS, FLEX_ACTIVATION_WINDOW_HOURS, LEVERAGE_LIMIT, SCALING_INCREASE_PERCENT, SCALING_PAYOUTS_PER_STEP } from "@/lib/rulebook";
 import { buildPerformanceSeries, getStatisticsTrades } from "@/lib/tradingStatistics";
+import { formatSyncedAt, getStatisticsDataSyncedAt } from "@/lib/statisticsSync";
 import PnlChart from "@/components/portal/PnlChart";
 import { btnPrimary, Card, cx, EmptyState, FormMessage, LoadState } from "@/components/portal/ui";
 
@@ -886,7 +887,11 @@ export default function AccountDetailsView({ id }: { id: string }) {
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[13px] leading-5 font-medium text-muted">
                   Trading Objectives
-                  {a.raw.statisticsUpdatedAt && <> • Updated {new Date(a.raw.statisticsUpdatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>}
+                  {(() => {
+                    // Show when the trading account itself last synced, not when we fetched it.
+                    const synced = getStatisticsDataSyncedAt(a.raw.statisticsPayload) || a.raw.statisticsUpdatedAt;
+                    return synced ? <> • Last synced {formatSyncedAt(synced)}</> : null;
+                  })()}
                 </p>
                 <button type="button" onClick={refresh} className={btnSecondaryXs}>
                   <RefreshCw className={cx(refreshing && "animate-spin")} /> Refresh
