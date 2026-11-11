@@ -2,7 +2,7 @@
 // <head> of the marketing and portal root layouts, so it is in the server HTML of
 // every public and trader page and fires PageView on load. Other events go
 // through trackPixel().
-export const META_BROWSER_PIXEL_ID = "1165346635957229";
+export const META_BROWSER_PIXEL_ID = "28652664451078960";
 
 const PIXEL_SNIPPET = `!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -12,7 +12,7 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '1165346635957229');
+fbq('init', '28652664451078960');
 fbq('track', 'PageView');`;
 
 declare global {
@@ -40,7 +40,7 @@ export function MetaPixelNoscript() {
   return (
     <noscript>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img height="1" width="1" style={{ display: "none" }} alt="" src="https://www.facebook.com/tr?id=1165346635957229&ev=PageView&noscript=1" />
+      <img height="1" width="1" style={{ display: "none" }} alt="" src="https://www.facebook.com/tr?id=28652664451078960&ev=PageView&noscript=1" />
     </noscript>
   );
 }
