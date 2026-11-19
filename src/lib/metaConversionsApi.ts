@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { db, type DBPixelEvent } from "./db";
 
 export const META_PIXEL_ID =
-  "28652664451078960";
+  "29082602798062059";
 
 // Must be a Conversions API token generated for the pixel above.
 export const META_CONVERSIONS_API_ACCESS_TOKEN =
