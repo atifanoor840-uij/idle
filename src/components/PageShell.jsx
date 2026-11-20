@@ -1,14 +1,13 @@
-import { Nav, TopBar } from "./Header";
+import { Nav } from "./Header";
 import Footer from "./Footer";
 import ChatWidget from "./ChatWidget";
 import Reveal from "./Reveal";
-import { ChartBg, Rich } from "./ui";
+import { Rich } from "./ui";
 
 /* Shared chrome for every inner marketing page */
 export default function PageShell({ children }) {
   return (
     <>
-      <TopBar />
       <Nav />
       <main>{children}</main>
       <Footer />
@@ -21,8 +20,11 @@ export default function PageShell({ children }) {
 /* Dark intro band at the top of inner pages */
 export function PageHero({ eyebrow, title, sub, seed = 9, children }) {
   return (
-    <section className="page-hero dark-band">
-      <ChartBg seed={seed} />
+    <section className="page-hero uc-page-hero">
+      <div className="uc-hero-bg" aria-hidden="true">
+        <div className="uc-hero-grid" />
+        <div className="uc-hero-glow" />
+      </div>
       <div className="container page-hero-in">
         {eyebrow && <span className="eyebrow">{eyebrow}</span>}
         <h1 className="page-h1">

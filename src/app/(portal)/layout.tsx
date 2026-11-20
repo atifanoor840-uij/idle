@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import { site } from "@/site.config";
 import { cookies, headers } from "next/headers";
@@ -13,13 +13,14 @@ import { MetaPixelHead, MetaPixelNoscript } from "@/components/MetaPixel";
 import "./portal.css";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-jakarta" });
+const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--font-serif-ui" });
 
 export const metadata: Metadata = {
   title: { default: `Dashboard · ${site.name}`, template: `%s · ${site.name}` },
   robots: { index: false },
 };
 
-const themeScript = `try{if(localStorage.getItem('portal-theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}`;
+const themeScript = `try{if(localStorage.getItem('portal-theme')==='light')document.documentElement.classList.remove('dark')}catch(e){}`;
 
 // Every portal page sits behind a valid signed session of an active trader.
 async function requireUser(): Promise<SessionUser> {
@@ -43,7 +44,7 @@ async function requireUser(): Promise<SessionUser> {
 export default async function PortalLayout({ children }: { children: ReactNode }) {
   const user = await requireUser();
   return (
-    <html lang="en" className={jakarta.variable} suppressHydrationWarning>
+    <html lang="en" className={`${jakarta.variable} ${serif.variable} dark`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <MetaPixelHead />

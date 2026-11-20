@@ -1,5 +1,5 @@
 import PageShell, { PageHero } from "@/components/PageShell";
-import { FinalCta } from "@/components/Sections";
+import { HomeCta } from "@/components/HomeSections";
 import { site } from "@/site.config";
 import { values } from "@/content.config";
 
@@ -68,7 +68,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <FinalCta />
+      <HomeCta />
     </PageShell>
   );
 }

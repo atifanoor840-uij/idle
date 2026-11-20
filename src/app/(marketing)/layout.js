@@ -1,10 +1,12 @@
-import { DM_Sans } from "next/font/google";
+import { DM_Sans, Instrument_Serif } from "next/font/google";
 import Script from "next/script";
 import { site } from "@/site.config";
 import { MetaPixelHead, MetaPixelNoscript } from "@/components/MetaPixel";
 import "./globals.css";
+import "./home.css";
 
 const dmSans = DM_Sans({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800", "900"], variable: "--font-dm" });
+const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--font-serif" });
 
 export const metadata = {
   metadataBase: new URL("https://idle4ex.com"),
@@ -48,11 +50,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={dmSans.variable}>
+    <html lang="en" className={`${dmSans.variable} ${serif.variable}`}>
       <head>
         <MetaPixelHead />
       </head>
-      <body>
+      <body className="uc">
         <MetaPixelNoscript />
         {children}
         {/* Zen-try Live Chat Support */}

@@ -4,32 +4,36 @@
 
 /* ── Design tokens — swap --brand* per firm ── */
 :root {
-  --brand: #34e834;          /* firm primary (same green as the marketing site) */
-  --brand-ink: #000000;      /* text on brand buttons */
-  --brand-soft: #ecfdea;     /* tinted banners, active tab bg */
-  --brand-strong: #13801a;   /* brand-coloured text / focus ring on light bg (AA) */
-  --canvas: #f1f2f5;
+  --brand: #16a34a;          /* dark green — matches the marketing homepage */
+  --brand-ink: #ffffff;      /* text on brand buttons */
+  --brand-soft: #e7f6ec;     /* tinted banners, active tab bg */
+  --brand-strong: #15803d;   /* brand-coloured text / focus ring on light bg (AA) */
+  --brand-glow: rgba(22, 163, 74, 0.35);
+  --canvas: #f1f4f2;
   --surface: #ffffff;
-  --surface-2: #f7f8fa;
-  --line: #e6e8ec;
-  --ink: #111318;
-  --ink-2: #3a3f47;
-  --muted: #7a808a;
+  --surface-2: #f5f8f6;
+  --line: #e2e8e4;
+  --ink: #0f1712;
+  --ink-2: #36423b;
+  --muted: #74827a;
   --success: #12a150;
   --danger: #d92d20;
   --warning: #e8a100;
   --warning-strong: #9a6a00;
 }
 .dark {
-  --canvas: #0e1014;
-  --surface: #171a20;
-  --surface-2: #1e222a;
-  --line: #2a2f38;
-  --ink: #f3f4f6;
-  --ink-2: #c9cdd4;
-  --muted: #8b919b;
-  --brand-soft: #112a17;
-  --brand-strong: #5bef5b;
+  --canvas: #060a08;
+  --surface: #0d1310;
+  --surface-2: #131c17;
+  --line: #1e2a23;
+  --ink: #f0f7f3;
+  --ink-2: #c3cec8;
+  --muted: #7f8f86;
+  --brand-soft: #0f2a1b;
+  --brand-strong: #4ade80;
+  --brand-glow: rgba(34, 197, 94, 0.45);
+  --success: #4ade80;
+  --danger: #f87171;
   --warning-strong: #f2b631;
 }
 
@@ -52,6 +56,7 @@
   --radius-card: 16px;
   --radius-tile: 12px;
   --font-sans: var(--font-jakarta), system-ui, sans-serif;
+  --font-serif: var(--font-serif-ui), "Instrument Serif", Georgia, serif;
 }
 
 html { color-scheme: light; }
@@ -88,3 +93,43 @@ body {
 }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ═══════════ Homepage look (dark green) ═══════════ */
+.dark body {
+  background:
+    radial-gradient(60rem 30rem at 70% -10rem, rgba(22, 163, 74, 0.14), transparent 70%),
+    radial-gradient(40rem 25rem at 0% 0%, rgba(22, 163, 74, 0.06), transparent 70%),
+    var(--canvas);
+  background-attachment: fixed;
+}
+.dark .bg-canvas { background: transparent; }
+
+/* cards: hairline border + soft top glow, like the homepage bento */
+.rounded-card.bg-surface { border: 1px solid var(--line); }
+.dark .rounded-card.bg-surface {
+  background:
+    radial-gradient(70% 60% at 50% 0%, rgba(34, 197, 94, 0.06), transparent 70%),
+    linear-gradient(180deg, var(--surface-2), var(--surface));
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* frosted top bar + sidebar */
+.portal-topbar { background: color-mix(in srgb, var(--surface) 78%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.dark .portal-sidebar { background: linear-gradient(180deg, #09110d, #060a08); border-color: rgba(255, 255, 255, 0.06); }
+.portal-nav-active { position: relative; background: var(--brand-soft) !important; color: var(--ink) !important; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 35%, transparent); }
+.portal-nav-active svg { color: var(--brand-strong); }
+.portal-nav-active::before { content: ""; position: absolute; left: -12px; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--brand-strong); box-shadow: 0 0 12px var(--brand-glow); }
+
+/* primary buttons glow */
+.dark .bg-brand.rounded-full { box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.35), 0 8px 26px -8px var(--brand-glow); }
+
+/* serif page titles */
+.portal-title { font-family: var(--font-serif); font-weight: 400 !important; letter-spacing: -0.01em; line-height: 1.05; }
+
+/* dashboard hero banner */
+.portal-hero { position: relative; isolation: isolate; background: linear-gradient(180deg, #0c1a12, #070d0a); border: 1px solid rgba(74, 222, 128, 0.18); color: #f0f7f3; }
+.portal-hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px); background-size: 40px 40px; -webkit-mask-image: radial-gradient(70% 90% at 70% 40%, #000, transparent 75%); mask-image: radial-gradient(70% 90% at 70% 40%, #000, transparent 75%); }
+.portal-hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(45% 70% at 78% 35%, rgba(34, 197, 94, 0.35), transparent 70%), radial-gradient(50% 60% at 10% 110%, rgba(21, 128, 61, 0.35), transparent 70%); }
+.portal-hero-title { background: linear-gradient(180deg, #ffffff 20%, #dcfce7 55%, #4ade80 110%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 22px rgba(74, 222, 128, 0.35)); }
+.portal-hero { --ink: #f0f7f3; --ink-2: #c3cec8; --surface: #0f1a14; --line: #24352b; --brand-ink: #fff; }

@@ -28,7 +28,7 @@ export default function Sidebar({
       {open && <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={onClose} aria-hidden="true" />}
       <aside
         className={cx(
-          "fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-line bg-surface transition-[transform,width] duration-200",
+          "portal-sidebar fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-line bg-surface transition-[transform,width] duration-200",
           open ? "translate-x-0" : "-translate-x-full",
           "lg:translate-x-0",
           collapsed && "lg:w-[76px]"
@@ -71,7 +71,7 @@ export default function Sidebar({
                         aria-current={active ? "page" : undefined}
                         className={cx(
                           "flex h-11 items-center gap-3 rounded-xl px-3 text-[14px] font-medium transition",
-                          active ? "bg-surface-2 text-ink" : "text-muted hover:bg-surface-2/70 hover:text-ink",
+                          active ? "portal-nav-active text-ink" : "text-muted hover:bg-surface-2/70 hover:text-ink",
                           collapsed && "lg:justify-center lg:px-0"
                         )}
                       >

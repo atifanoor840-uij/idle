@@ -7,7 +7,7 @@ import { MODEL_LABEL, useApi } from "@/lib/portal-data";
 import { CHALLENGE_RULES, flexPriceSplit, normalizeChallengeRuleKey, WEEKEND_HOLDING_ADDON_PERCENT, OVERNIGHT_HOLDING_ADDON_PERCENT } from "@/lib/rulebook";
 import { MANUAL_CRYPTO_PAYMENT_METHOD, MANUAL_WALLETS } from "@/config/manualWallets";
 import { trackPixel } from "@/components/MetaPixel";
-import { CARD_ICONS, CRYPTO_ICONS, PaymentIcons } from "@/components/portal/PaymentIcons";
+import { CRYPTO_ICONS, PaymentIcons } from "@/components/portal/PaymentIcons";
 import { btnPrimary, btnSecondary, Card, cx, FormMessage, LoadState } from "@/components/portal/ui";
 import { Field, inputCls, KV, PageHeader, Segmented, Tabs } from "@/components/portal/kit";
 
@@ -16,8 +16,6 @@ const MODEL_ORDER: PlanModel[] = ["Two Step", "One Step", "Instant", "Flex"];
 const PLATFORMS = ["MT5", "MT4", "cTrader"] as const;
 // Hosted NOWPayments invoice; /api/orders/pay routes any non-manual "crypto" method there.
 const CRYPTO_GATEWAY = "Crypto (NOWPayments)";
-// Whop hosted checkout; /api/orders/pay routes any method containing "whop" there.
-const WHOP = "Whop";
 
 export default function ChallengesView() {
   const { data, error, loading, reload } = useApi(async () => {
@@ -25,7 +23,6 @@ export default function ChallengesView() {
     return {
       plans: plans.plans.filter((p) => String(p.status).toLowerCase() === "active"),
       cryptoGatewayOk: geo?.cryptoGatewayAvailable === true,
-      whopOk: geo?.whopAvailable === true,
     };
   });
 
@@ -37,8 +34,6 @@ export default function ChallengesView() {
 
   const [platform, setPlatform] = useState<(typeof PLATFORMS)[number]>("MT5");
   const methods = [
-    // Card payments always check out through Whop.
-    ...(data?.whopOk ? [{ key: WHOP, label: "Card / Apple Pay / Google Pay", icons: CARD_ICONS }] : []),
     ...(data?.cryptoGatewayOk ? [{ key: CRYPTO_GATEWAY, label: "Crypto — 100+ coins (NOWPayments)", icons: CRYPTO_ICONS }] : []),
     ...(MANUAL_WALLETS.length
       ? [{ key: MANUAL_CRYPTO_PAYMENT_METHOD, label: "Crypto (USDT / BTC)", icons: [...new Set(MANUAL_WALLETS.map((w) => w.asset.toLowerCase()))] }]

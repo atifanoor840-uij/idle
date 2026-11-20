@@ -65,7 +65,7 @@ function AccountMenu() {
 }
 
 export default function Topbar({ onMenu }: { onMenu: () => void }) {
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(true);
   useEffect(() => setDark(document.documentElement.classList.contains("dark")), []);
 
   const toggleTheme = () => {
@@ -78,7 +78,7 @@ export default function Topbar({ onMenu }: { onMenu: () => void }) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-line bg-surface px-4 md:px-6">
+    <header className="portal-topbar sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-line px-4 md:px-6">
       <button type="button" className={iconBtn} aria-label="Toggle menu" onClick={onMenu}>
         <Menu size={20} strokeWidth={1.75} />
       </button>

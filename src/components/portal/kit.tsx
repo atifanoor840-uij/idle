@@ -171,7 +171,7 @@ export function PageHeader({ title, sub, actions }: { title: string; sub?: strin
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-[22px] font-bold text-ink md:text-[24px]">{title}</h1>
+        <h1 className="portal-title text-[32px] text-ink md:text-[40px]">{title}</h1>
         {sub && <p className="mt-0.5 text-[14px] text-muted">{sub}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}

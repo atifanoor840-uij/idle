@@ -26,27 +26,47 @@ export const site = {
   },
 
   promo: { text: "Simulated Accounts & Forex Evaluation Programs Live", href: "/pricing" },
-  sponsorship: { text: "Sponsorship", href: "#" },
+
+  // Coupon shown in the bar above the navbar. Must be an active coupon created in
+  // the admin CRM: the bar checks it against /api/coupons and shows that coupon's
+  // real discount and expiry, and hides itself if the code is missing or expired.
+  // Set code to "" to hide the bar.
+  couponBar: { code: "SAVE20", text: "Limited-time offer", href: "/pricing" },
 
   nav: [
-    { label: "Quickstart", href: "/#steps" },
     { label: "Pricing", href: "/pricing" },
     { label: "Rules", href: "/rules" },
-    { label: "Platforms", href: "/#platforms" },
+    { label: "FAQ", href: "/faq" },
   ],
   navMore: [
+    { label: "How It Works", href: "/#steps" },
+    { label: "Platforms", href: "/#platforms" },
     { label: "Reward Policy", href: "/payout-policy" },
     { label: "Refund Policy", href: "/refund-policy" },
-    { label: "FAQ", href: "/faq" },
     { label: "Affiliates", href: "/affiliates" },
     { label: "About Us", href: "/about" },
     { label: "Contact", href: "/contact" },
   ],
 
+  // Home hero (upcomers-style big glowing headline)
+  hero: {
+    titleLines: ["TRADE", "BOLD"],
+    tag: ["UP TO", "90%"],
+    award: ["Skill-Based Evaluations", "Up to $200K Simulated Capital"],
+    sub: "1-Step & 2-Step evaluations on MT5. Clear 4% daily and 6% max loss limits, bi-weekly performance rewards, zero hidden rules.",
+    cta: "Start your challenge",
+    promo: {
+      pill: "Up to 90%",
+      text: "Performance reward share on",
+      accent: "every challenge",
+      sub: "One-time fee · No monthly subscription · No time limits",
+    },
+  },
+
   heroSlides: [
     {
-      title: "Skill-Based Programs.\n**Zero Hidden Rules**.",
-      sub: "Straightforward trading evaluations with 4% daily and 6% static loss limits, designed for educational purposes and long-term trader growth.",
+      title: "Trade Bold.\n**Get Rewarded.**",
+      sub: "Up to $200K in simulated capital and up to 90% performance rewards. Clear 4% daily and 6% static loss limits. Zero hidden rules.",
     },
   ],
 

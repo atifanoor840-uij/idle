@@ -50,7 +50,7 @@ export default function DashboardView({ payment }: { payment: string }) {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-[22px] font-bold text-ink md:text-[24px]">Welcome back, {firstName}</h1>
+        <h1 className="portal-title text-[32px] text-ink md:text-[42px]">Welcome back, {firstName}</h1>
         <p className="mt-0.5 text-[14px] text-muted">Here is how your accounts are doing today.</p>
       </div>
 
