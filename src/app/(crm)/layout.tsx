@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Hanken_Grotesk } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { site } from "@/site.config";
@@ -10,7 +10,7 @@ import { db } from "@/lib/db";
 import { readSessionUserId } from "@/lib/session";
 import "../(portal)/portal.css";
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-jakarta" });
+const jakarta = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-jakarta" });
 
 export const metadata: Metadata = {
   title: { default: `Admin · ${site.name}`, template: `%s · Admin · ${site.name}` },

@@ -1,10 +1,11 @@
 import { Nav } from "@/components/Header";
 import Hero from "@/components/Hero";
 import Pricing from "@/components/Pricing";
-import { Bento, ChallengeHead, HomeCta, HowItWorks, Rewards, TradeYourWay } from "@/components/HomeSections";
+import { HomeCta, HowItWorks, Rewards, TradeYourWay } from "@/components/HomeSections";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/components/ChatWidget";
 import Reveal from "@/components/Reveal";
+import { PayoutStrip } from "@/components/Payouts";
 import { getPublicPricing } from "@/lib/publicPricing";
 import { site } from "@/site.config";
 
@@ -25,11 +26,8 @@ export default async function Home() {
       <Nav />
       <main>
         <Hero />
-        <Bento />
-        <section className="uc-sec uc-pricing" id="plans-wrap">
-          <ChallengeHead />
-          <Pricing models={models} />
-        </section>
+        <PayoutStrip />
+        <Pricing models={models} showHeader />
         <Rewards />
         <HowItWorks />
         <TradeYourWay />

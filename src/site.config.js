@@ -35,12 +35,13 @@ export const site = {
 
   nav: [
     { label: "Pricing", href: "/pricing" },
+    { label: "Payouts", href: "/payout-certificates" },
     { label: "Rules", href: "/rules" },
     { label: "FAQ", href: "/faq" },
   ],
   navMore: [
     { label: "How It Works", href: "/#steps" },
-    { label: "Platforms", href: "/#platforms" },
+    { label: "Platforms", href: "/#markets" },
     { label: "Reward Policy", href: "/payout-policy" },
     { label: "Refund Policy", href: "/refund-policy" },
     { label: "Affiliates", href: "/affiliates" },
@@ -49,18 +50,14 @@ export const site = {
   ],
 
   // Home hero (upcomers-style big glowing headline)
+  // Home hero. The badge shows the live coupon from couponBar when one is active,
+  // otherwise this fallback badge.
   hero: {
-    titleLines: ["TRADE", "BOLD"],
-    tag: ["UP TO", "90%"],
-    award: ["Skill-Based Evaluations", "Up to $200K Simulated Capital"],
-    sub: "1-Step & 2-Step evaluations on MT5. Clear 4% daily and 6% max loss limits, bi-weekly performance rewards, zero hidden rules.",
-    cta: "Start your challenge",
-    promo: {
-      pill: "Up to 90%",
-      text: "Performance reward share on",
-      accent: "every challenge",
-      sub: "One-time fee · No monthly subscription · No time limits",
-    },
+    titleLines: ["Trade Bold.", "Get Rewarded."],
+    sub: "Sharpen your edge on our simulated platform. No time limits. Up to $200K virtual capital.",
+    cta: "Start Evaluation",
+    badge: { tag: "NEW", text: "1-Step & 2-Step evaluations", href: "/pricing" },
+    usersLabel: "Active Traders",
   },
 
   heroSlides: [

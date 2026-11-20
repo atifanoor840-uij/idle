@@ -56,7 +56,7 @@
   --radius-card: 16px;
   --radius-tile: 12px;
   --font-sans: var(--font-jakarta), system-ui, sans-serif;
-  --font-serif: var(--font-serif-ui), "Instrument Serif", Georgia, serif;
+  --font-serif: var(--font-display-ui), "Sora", system-ui, sans-serif; /* headings: same type as the homepage hero */
 }
 
 html { color-scheme: light; }
@@ -66,6 +66,7 @@ body {
   color: var(--ink-2);
   font-family: var(--font-sans);
   font-size: 14px;
+  letter-spacing: -0.005em;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -125,11 +126,13 @@ body {
 .dark .bg-brand.rounded-full { box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.35), 0 8px 26px -8px var(--brand-glow); }
 
 /* serif page titles */
-.portal-title { font-family: var(--font-serif); font-weight: 400 !important; letter-spacing: -0.01em; line-height: 1.05; }
+.portal-title { font-family: var(--font-serif); font-weight: 600 !important; letter-spacing: -0.025em; line-height: 1.08; }
+.dark .portal-title { background: linear-gradient(90deg, #fafafa 0%, #fafafa 60%, #7d8a83 100%); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: 0.04em; }
+h2, h3 { font-family: var(--font-serif); letter-spacing: -0.015em; }
 
 /* dashboard hero banner */
 .portal-hero { position: relative; isolation: isolate; background: linear-gradient(180deg, #0c1a12, #070d0a); border: 1px solid rgba(74, 222, 128, 0.18); color: #f0f7f3; }
 .portal-hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px); background-size: 40px 40px; -webkit-mask-image: radial-gradient(70% 90% at 70% 40%, #000, transparent 75%); mask-image: radial-gradient(70% 90% at 70% 40%, #000, transparent 75%); }
 .portal-hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(45% 70% at 78% 35%, rgba(34, 197, 94, 0.35), transparent 70%), radial-gradient(50% 60% at 10% 110%, rgba(21, 128, 61, 0.35), transparent 70%); }
-.portal-hero-title { background: linear-gradient(180deg, #ffffff 20%, #dcfce7 55%, #4ade80 110%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 22px rgba(74, 222, 128, 0.35)); }
+.portal-hero-title { font-family: var(--font-serif); font-weight: 600 !important; letter-spacing: -0.025em !important; background: linear-gradient(90deg, #fafafa 0%, #fafafa 60%, #7d8a83 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: none; padding-bottom: 0.04em; }
 .portal-hero { --ink: #f0f7f3; --ink-2: #c3cec8; --surface: #0f1a14; --line: #24352b; --brand-ink: #fff; }

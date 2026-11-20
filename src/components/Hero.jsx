@@ -1,20 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { site } from "@/site.config";
-import { PROFIT_SPLIT_BY_WITHDRAWAL } from "@/lib/rulebook";
-
-const SPLIT_MAX = PROFIT_SPLIT_BY_WITHDRAWAL.at(-1);
 
 const pad = (n) => String(Math.max(0, n)).padStart(2, "0");
 
-function split(ms) {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  return { d: Math.floor(s / 86400), h: Math.floor((s % 86400) / 3600), m: Math.floor((s % 3600) / 60), s: s % 60 };
-}
-
-// Live coupon from the CRM (same source as the old top bar). Returns null when the
-// configured code is missing or expired, so the promo never shows a fake deal.
+// Live coupon from the CRM. Returns null when the configured code is missing or
+// expired, so the badge never advertises a deal that doesn't exist.
 function useCoupon(code) {
   const [coupon, setCoupon] = useState(null);
   useEffect(() => {
@@ -31,139 +23,115 @@ function useCoupon(code) {
   return coupon;
 }
 
-function useNow(active) {
+function useCountdown(expiresAt) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (!active) return;
+    if (!expiresAt) return;
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
-  }, [active]);
-  return now;
+  }, [expiresAt]);
+  if (!expiresAt) return null;
+  const s = Math.floor((expiresAt - now) / 1000);
+  if (s <= 0) return null;
+  const d = Math.floor(s / 86400);
+  const hms = `${pad(Math.floor((s % 86400) / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+  return d > 0 ? `${d}d ${hms}` : hms;
 }
 
-function Laurel({ flip = false }) {
+/* Glass candlestick crystal — original artwork drawn in SVG, tinted with the brand green. */
+function Crystal({ className, id }) {
   return (
-    <svg className="uc-laurel" viewBox="0 0 24 48" aria-hidden="true" style={flip ? { transform: "scaleX(-1)" } : undefined}>
-      <path d="M18 46C9 40 5 30 6 18 7 11 10 6 14 2" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-      {[8, 15, 22, 29, 36].map((y, i) => (
-        <g key={y}>
-          <ellipse cx={4.5 + i * 0.6} cy={y} rx="2" ry="4.2" transform={`rotate(-28 ${4.5 + i * 0.6} ${y})`} fill="currentColor" />
-          <ellipse cx={12 + i * 0.4} cy={y + 3} rx="1.7" ry="3.6" transform={`rotate(38 ${12 + i * 0.4} ${y + 3})`} fill="currentColor" />
-        </g>
-      ))}
+    <svg className={className} viewBox="0 0 120 300" aria-hidden="true">
+      <defs>
+        <linearGradient id={`${id}-glass`} x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#d9fbe6" stopOpacity=".55" />
+          <stop offset=".18" stopColor="#ffffff" stopOpacity=".9" />
+          <stop offset=".42" stopColor="#7ef0ad" stopOpacity=".35" />
+          <stop offset=".7" stopColor="#0f5132" stopOpacity=".55" />
+          <stop offset="1" stopColor="#c8f7da" stopOpacity=".7" />
+        </linearGradient>
+        <linearGradient id={`${id}-core`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#bbf7d0" />
+          <stop offset=".5" stopColor="#22c55e" />
+          <stop offset="1" stopColor="#15803d" />
+        </linearGradient>
+        <linearGradient id={`${id}-wick`} x1="0" x2="1">
+          <stop offset="0" stopColor="#e7fdf0" stopOpacity=".9" />
+          <stop offset="1" stopColor="#7ef0ad" stopOpacity=".5" />
+        </linearGradient>
+        <filter id={`${id}-blur`} x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="6" />
+        </filter>
+      </defs>
+      {/* wicks */}
+      <rect x="55" y="6" width="10" height="64" rx="5" fill={`url(#${id}-wick)`} stroke="#ffffff" strokeOpacity=".6" />
+      <rect x="55" y="228" width="10" height="66" rx="5" fill={`url(#${id}-wick)`} stroke="#ffffff" strokeOpacity=".6" />
+      {/* inner glow */}
+      <rect x="40" y="78" width="40" height="144" rx="12" fill="#22c55e" opacity=".75" filter={`url(#${id}-blur)`} />
+      {/* glass body */}
+      <rect x="22" y="62" width="76" height="176" rx="10" fill={`url(#${id}-glass)`} stroke="#ffffff" strokeOpacity=".75" strokeWidth="1.5" />
+      {/* glowing core bar */}
+      <rect x="46" y="76" width="16" height="148" rx="6" fill={`url(#${id}-core)`} />
+      <rect x="49" y="80" width="5" height="140" rx="2.5" fill="#ffffff" opacity=".85" />
+      {/* facets & highlights */}
+      <path d="M22 72 L98 72" stroke="#ffffff" strokeOpacity=".5" />
+      <path d="M22 228 L98 228" stroke="#ffffff" strokeOpacity=".35" />
+      <path d="M34 66 L34 234" stroke="#ffffff" strokeOpacity=".7" strokeWidth="2" />
+      <path d="M86 66 L86 234" stroke="#ffffff" strokeOpacity=".25" />
+      <rect x="26" y="66" width="6" height="168" rx="3" fill="#ffffff" opacity=".35" />
     </svg>
-  );
-}
-
-function Stopwatch() {
-  return (
-    <span className="uc-watch" aria-hidden="true">
-      <svg viewBox="0 0 48 48">
-        <rect x="20" y="2" width="8" height="5" rx="1.5" fill="currentColor" />
-        <circle cx="24" cy="27" r="17" fill="none" stroke="currentColor" strokeWidth="3" />
-        <circle cx="24" cy="27" r="12" fill="none" stroke="currentColor" strokeOpacity=".25" strokeWidth="1" strokeDasharray="1 3" />
-        <path className="uc-watch-hand" d="M24 27 L31 20" stroke="#4ade80" strokeWidth="3" strokeLinecap="round" />
-        <circle cx="24" cy="27" r="2.2" fill="currentColor" />
-      </svg>
-    </span>
   );
 }
 
 export default function Hero() {
   const h = site.hero;
   const coupon = useCoupon(site.couponBar?.code);
-  const expiresAt = coupon?.expiresAt ? new Date(coupon.expiresAt).getTime() : null;
-  const now = useNow(!!expiresAt);
-  const left = expiresAt ? expiresAt - now : null;
-  const showTimer = left !== null && left > 0;
-  const t = split(left || 0);
+  const left = useCountdown(coupon?.expiresAt ? new Date(coupon.expiresAt).getTime() : null);
+  const users = site.numbers.stats[1].num;
+
+  const badge = coupon
+    ? { tag: coupon.code, text: `${coupon.discountPercent}% off all challenges${left ? ` · ends in ${left}` : ""}`, href: site.couponBar.href || "/pricing" }
+    : h.badge;
 
   return (
-    <section className="uc-hero">
-      <div className="uc-hero-bg" aria-hidden="true">
-        <div className="uc-hero-grid" />
-        <div className="uc-hero-glow" />
+    <section className="bx-hero">
+      <div className="bx-bg" aria-hidden="true">
+        <div className="bx-beams" />
+        <div className="bx-dots" />
+        <div className="bx-glow" />
+        <div className="bx-fade" />
       </div>
 
-      <div className="container uc-hero-in">
-        <h1 className="uc-hero-title">
+      <Crystal className="bx-crystal bx-crystal-l" id="cl" />
+      <Crystal className="bx-crystal bx-crystal-r" id="cr" />
+
+      <div className="container bx-in">
+        <a href={badge.href} className="bx-badge bx-rise" style={{ "--d": "0ms" }}>
+          <span className="bx-badge-tag">{badge.tag}</span>
+          <span className="bx-badge-txt">{badge.text}</span>
+          <ArrowUpRight size={15} />
+        </a>
+
+        <h1 className="bx-title bx-rise" style={{ "--d": "90ms" }}>
           {h.titleLines.map((l) => (
-            <span key={l} className="uc-hero-line">
-              {l}
-            </span>
+            <span key={l}>{l}</span>
           ))}
-          <span className="uc-hero-tag">
-            <small>{h.tag[0]}</small>
-            {SPLIT_MAX}%
-          </span>
         </h1>
 
-        <div className="uc-award">
-          <Laurel />
-          <div>
-            <b>{h.award[0]}</b>
-            <span>{h.award[1]}</span>
-          </div>
-          <Laurel flip />
-        </div>
+        <p className="bx-sub bx-rise" style={{ "--d": "180ms" }}>
+          {h.sub}
+        </p>
 
-        <p className="uc-hero-sub">{h.sub}</p>
-
-        <a href={site.links.start} className="uc-btn uc-btn-white uc-hero-cta">
-          {h.cta} <ArrowRight size={18} />
-        </a>
-
-        <a href={site.couponBar?.href || "/pricing"} className="uc-promo">
-          <Stopwatch />
-          <div className="uc-promo-txt">
-            <div className="uc-promo-top">
-              <span className="uc-promo-pill">{coupon ? `${coupon.discountPercent}% off` : `Up to ${SPLIT_MAX}%`}</span>
-              <span>
-                {coupon ? (
-                  <>
-                    {site.couponBar.text} with code <span className="uc-promo-code">{coupon.code}</span>
-                  </>
-                ) : (
-                  <>
-                    {h.promo.text} <span className="uc-promo-code">{h.promo.accent}</span>
-                  </>
-                )}
-              </span>
-            </div>
-            <div className="uc-promo-sub">{h.promo.sub}</div>
-          </div>
-          {showTimer ? (
-            <div className="uc-count" aria-label="Offer ends in">
-              {[
-                [t.d, "Days"],
-                [t.h, "Hours"],
-                [t.m, "Min"],
-                [t.s, "Sec"],
-              ].map(([v, l], i) => (
-                <div key={l} className="uc-count-cell">
-                  {i > 0 && <span className="uc-count-sep">:</span>}
-                  <div>
-                    <b className={i === 3 ? "sec" : ""}>{pad(v)}</b>
-                    <span>{l}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <span className="uc-promo-go">
-              View plans <ArrowRight size={16} />
+        <div className="bx-actions bx-rise" style={{ "--d": "270ms" }}>
+          <a href={site.links.start} className="bx-cta">
+            {h.cta}
+            <span className="bx-cta-ic">
+              <ArrowUpRight size={20} />
             </span>
-          )}
-        </a>
-
-        <div className="uc-press">
-          <span className="uc-press-lbl">Trade on</span>
-          {site.platforms.map((p) => (
-            <span key={p} className="uc-press-logo">
-              {p}
-            </span>
-          ))}
-          <span className="uc-press-logo">Web &amp; Mobile</span>
+          </a>
+          <span className="bx-users">
+            <b>{users}</b> {h.usersLabel}
+          </span>
         </div>
       </div>
     </section>

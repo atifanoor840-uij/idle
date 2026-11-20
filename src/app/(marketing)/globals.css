@@ -19,14 +19,14 @@
   --r-card: 1.25rem;
   --r-pill: 0.9375rem;
   --container: 75rem;
-  --font: var(--font-dm), "DM Sans", system-ui, sans-serif;
+  --font: var(--font-sans-site), "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
 }
 * { box-sizing: border-box; }
 html { font-size: clamp(11px, 1.23vw, 15px); scroll-behavior: smooth; }
 body {
   margin: 0;
   font-family: var(--font);
-  font-weight: 300;
+  font-weight: 450;
   font-size: 1rem;
   color: #000;
   background: #fff;
@@ -74,7 +74,7 @@ button { font-family: inherit; }
 .check { flex: none; width: 1rem; height: 1rem; border-radius: 50%; background: var(--green); display: grid; place-items: center; }
 .check::after { content: ""; width: 0.3rem; height: 0.55rem; border: solid #000; border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
 
-.stat .num { font-size: 3.25rem; font-weight: 300; color: #fff; line-height: 1.1; white-space: nowrap; }
+.stat .num { font-size: 3.25rem; font-weight: 450; color: #fff; line-height: 1.1; white-space: nowrap; }
 .stat .lbl { font-size: 0.8125rem; font-weight: 400; text-transform: uppercase; letter-spacing: 0.15em; color: var(--green); margin-top: 0.4rem; }
 .stat-pre { font-size: 1.25rem; font-weight: 500; color: #fff; margin-bottom: 0.2rem; }
 .stat-center { text-align: center; position: relative; z-index: 1; }
@@ -149,7 +149,7 @@ button { font-family: inherit; }
 .hero-texts { display: grid; margin-bottom: 2.5rem; width: 100%; }
 .hero-text { grid-area: 1 / 1; opacity: 0; transform: translateY(12px); transition: opacity 0.8s, transform 0.8s; pointer-events: none; }
 .hero-text.active { opacity: 1; transform: none; pointer-events: auto; }
-.hero-h1 { font-size: clamp(2.25rem, 5vw, 4.75rem); font-weight: 300; line-height: 1.08; letter-spacing: -0.01em; }
+.hero-h1 { font-size: clamp(2.25rem, 5vw, 4.75rem); font-weight: 450; line-height: 1.08; letter-spacing: -0.01em; }
 .hero-h1 strong { font-weight: 700; }
 .hero-sub { font-size: clamp(1.0625rem, 1.8vw, 1.5rem); font-weight: 400; color: var(--w60); margin-top: 1.25rem; max-width: 44rem; margin-left: auto; margin-right: auto; }
 .dots { display: flex; gap: 0.5rem; margin-top: 2.5rem; }
@@ -365,7 +365,7 @@ button { font-family: inherit; }
 .footer-links a { color: var(--muted); text-decoration: none; font-size: 1rem; transition: color 0.2s; }
 .footer-links a:hover { color: #fff; }
 .legal { padding: 2rem 0; display: grid; gap: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-.legal p { font-size: 0.875rem; font-weight: 300; color: var(--muted); line-height: 1.65; }
+.legal p { font-size: 0.875rem; font-weight: 450; color: var(--muted); line-height: 1.65; }
 .legal strong { color: #fff; font-weight: 700; }
 .legal a { color: var(--green); }
 .footer-bottom { padding-top: 1.5rem; font-size: 0.75rem; color: #fff; }
@@ -494,7 +494,7 @@ button { font-family: inherit; }
 .page-hero { padding: 6.5rem 0 5.5rem; }
 .page-hero-in { position: relative; display: grid; gap: 1.25rem; justify-items: center; text-align: center; }
 .eyebrow { font-size: 0.8125rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.15em; color: var(--green); }
-.page-h1 { font-size: clamp(2.25rem, 5vw, 4rem); font-weight: 300; line-height: 1.1; letter-spacing: -0.01em; }
+.page-h1 { font-size: clamp(2.25rem, 5vw, 4rem); font-weight: 450; line-height: 1.1; letter-spacing: -0.01em; }
 .page-h1 strong { font-weight: 700; }
 .page-sub { font-size: 1.25rem; font-weight: 400; color: var(--w60); max-width: 44rem; line-height: 1.5; }
 .page-hero-in .btn { margin-top: 0.75rem; }
@@ -506,7 +506,7 @@ button { font-family: inherit; }
 
 /* pricing */
 .pricing-head { display: grid; gap: 0.85rem; justify-items: center; margin-bottom: 2.75rem; }
-.pricing-title { font-weight: 300; line-height: 1.12; }
+.pricing-title { font-weight: 450; line-height: 1.12; }
 .pricing-title strong { font-weight: 700; }
 .pricing-sub { font-size: 1.125rem; font-weight: 400; color: #555; max-width: 40rem; line-height: 1.5; }
 .pricing-controls { display: grid; gap: 1.25rem; justify-items: center; margin-bottom: 2.5rem; width: 100%; }
@@ -576,7 +576,7 @@ button { font-family: inherit; }
 .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); background: #000; border-radius: var(--r-card); padding: 2.5rem 1rem; }
 .stat-box { text-align: center; padding: 0 1rem; }
 .stat-box + .stat-box { border-left: 1px solid rgba(255, 255, 255, 0.12); }
-.stat-box .num { font-size: 2.75rem; font-weight: 300; color: #fff; white-space: nowrap; }
+.stat-box .num { font-size: 2.75rem; font-weight: 450; color: #fff; white-space: nowrap; }
 .stat-box .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--green); margin-top: 0.4rem; }
 .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.75rem; }
 .tier { text-align: center; padding: 3rem 2rem; }

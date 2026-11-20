@@ -1,11 +1,16 @@
-import { DM_Sans, Instrument_Serif } from "next/font/google";
+import { Barlow_Condensed, Hanken_Grotesk, Instrument_Serif, Sora } from "next/font/google";
 import Script from "next/script";
 import { site } from "@/site.config";
 import { MetaPixelHead, MetaPixelNoscript } from "@/components/MetaPixel";
 import "./globals.css";
 import "./home.css";
+import "./pricing.css";
+import "./type.css";
+import "./payouts.css";
 
-const dmSans = DM_Sans({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800", "900"], variable: "--font-dm" });
+const sans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-sans-site" });
+const display = Sora({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display" });
+const condensed = Barlow_Condensed({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-condensed" });
 const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--font-serif" });
 
 export const metadata = {
@@ -50,7 +55,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${serif.variable}`}>
+    <html lang="en" className={`${sans.variable} ${serif.variable} ${condensed.variable} ${display.variable}`}>
       <head>
         <MetaPixelHead />
       </head>

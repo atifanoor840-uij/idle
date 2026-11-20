@@ -1,4 +1,4 @@
-import PageShell, { PageHero } from "@/components/PageShell";
+import PageShell from "@/components/PageShell";
 import Pricing from "@/components/Pricing";
 import { Checklist } from "@/components/ui";
 import { site } from "@/site.config";
@@ -29,15 +29,9 @@ export default async function PricingPage() {
   const models = await getPublicPricing();
   return (
     <PageShell>
-      <PageHero
-        eyebrow="Evaluation Plans & Pricing"
-        title={`Choose Your **Trading Challenge**.\nUnlock Up To **${SPLIT_SUMMARY.max}%** Rewards.`}
-        sub="Transparent one-time program fees with no monthly subscriptions. Pass the evaluation to qualify for a simulated account upon successful completion."
-        seed={14}
-      />
-      <Pricing models={models} />
+      <Pricing models={models} showHeader headingLevel={1} page />
 
-      <section className="section section-top0">
+      <section className="section section-top0 pz-incl">
         <div className="container">
           <div className="card card-center" data-reveal>
             <h2 className="h2">Included With Every Trading Evaluation Account</h2>

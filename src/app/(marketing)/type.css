@@ -1,0 +1,62 @@
+/* ═══════════════════════════════════════════════════════════
+   SITE-WIDE TYPOGRAPHY — every heading uses the homepage hero type:
+   Sora semibold, tight tracking; big titles get the hero's
+   grey → white → grey gradient; supporting text uses the hero grey.
+   Loaded after home.css / pricing.css so it wins.
+   ═══════════════════════════════════════════════════════════ */
+.uc {
+  --font-head: var(--font-display), "Sora", var(--font);
+  --uc-serif: var(--font-head); /* anything still pointing at the old serif */
+  --hero-grey: #a1a1aa;
+}
+
+/* all headings */
+.uc h1, .uc h2, .uc h3,
+.uc .uc-title, .uc .h2, .uc .faq-h, .uc .sub-h, .uc .doc-h, .uc .auth-h,
+.uc .page-h1, .uc .uc-card-h, .uc .rule-title, .uc .step-title, .uc .footer-h, .uc .uc-how-h {
+  font-family: var(--font-head);
+  font-weight: 600 !important;
+  letter-spacing: -0.025em;
+}
+.uc .page-h1 strong, .uc .h2 strong, .uc .pricing-title strong { font-weight: 600; }
+
+/* big section + page titles: the hero gradient */
+.uc .uc-title, .uc .page-h1 {
+  background: linear-gradient(90deg, #7d8a83 0%, #fafafa 28%, #fafafa 72%, #7d8a83 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: none;
+  line-height: 1.08;
+  padding-bottom: 0.04em;
+}
+.uc .uc-title { font-size: clamp(2.2rem, 4.4vw, 3.6rem); }
+.uc .page-h1 { font-size: clamp(2.5rem, 5.6vw, 4.8rem); }
+.uc .page-h1 strong { color: inherit; }
+.uc .h2 { font-size: clamp(1.8rem, 3.2vw, 2.6rem); }
+.uc .faq-h { font-size: clamp(1.5rem, 2.6vw, 2rem); }
+.uc .doc-h { font-size: 1.6rem; }
+.uc .auth-h { font-size: 1.9rem; }
+
+/* numbers drawn large use the same face */
+.uc .uc-how-num, .uc .uc-widget-val, .uc .uc-review-score b, .uc .uc-rw-card b, .uc .uc-phone-time,
+.uc .stat-box .num, .uc .stat .num, .uc .tier-rate, .uc .rule-val, .uc .uc-ch-stat b, .uc .uc-quote-mid b {
+  font-family: var(--font-head);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+/* supporting copy in the hero grey */
+.uc .uc-title-sub, .uc .page-sub, .uc .uc-card-p, .uc .p-dark, .uc .prose p, .uc .rule-text,
+.uc .faq-item p, .uc .doc-sec p, .uc .doc-sec li, .uc .auth-sub, .uc .uc-how-p {
+  color: var(--hero-grey);
+}
+
+/* pills/eyebrows match the hero badge */
+.uc .eyebrow {
+  font-family: var(--font);
+  letter-spacing: 0.1em;
+  color: #fff;
+  background: rgba(22, 163, 74, 0.1);
+  border-color: rgba(74, 222, 128, 0.25);
+}

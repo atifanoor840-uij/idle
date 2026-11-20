@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
+import { Hanken_Grotesk, Sora } from "next/font/google";
 import Script from "next/script";
 import { site } from "@/site.config";
 import { cookies, headers } from "next/headers";
@@ -12,8 +12,8 @@ import { readSessionUserId } from "@/lib/session";
 import { MetaPixelHead, MetaPixelNoscript } from "@/components/MetaPixel";
 import "./portal.css";
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-jakarta" });
-const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--font-serif-ui" });
+const jakarta = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-jakarta" });
+const display = Sora({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display-ui" });
 
 export const metadata: Metadata = {
   title: { default: `Dashboard · ${site.name}`, template: `%s · ${site.name}` },
@@ -44,7 +44,7 @@ async function requireUser(): Promise<SessionUser> {
 export default async function PortalLayout({ children }: { children: ReactNode }) {
   const user = await requireUser();
   return (
-    <html lang="en" className={`${jakarta.variable} ${serif.variable} dark`} suppressHydrationWarning>
+    <html lang="en" className={`${jakarta.variable} ${display.variable} dark`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <MetaPixelHead />
