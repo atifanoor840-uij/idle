@@ -3,6 +3,9 @@
 // every public and trader page and fires PageView on load. Other events go
 // through trackPixel().
 export const META_BROWSER_PIXEL_ID = "29082602798062059";
+// Second pixel: every fbq("track") call (PageView and trackPixel events) goes to
+// both IDs. The server-side Conversions API only sends to the first one.
+export const META_BROWSER_PIXEL_ID_2 = "1692118829241578";
 
 const PIXEL_SNIPPET = `!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -13,6 +16,7 @@ t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', '29082602798062059');
+fbq('init', '1692118829241578');
 fbq('track', 'PageView');`;
 
 declare global {
@@ -41,6 +45,8 @@ export function MetaPixelNoscript() {
     <noscript>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img height="1" width="1" style={{ display: "none" }} alt="" src="https://www.facebook.com/tr?id=29082602798062059&ev=PageView&noscript=1" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img height="1" width="1" style={{ display: "none" }} alt="" src="https://www.facebook.com/tr?id=1692118829241578&ev=PageView&noscript=1" />
     </noscript>
   );
 }
