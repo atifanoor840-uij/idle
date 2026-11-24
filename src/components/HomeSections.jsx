@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
-  Bell,
+  Check,
   CalendarClock,
   Clock,
   Headphones,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { SiApplepay, SiBitcoin, SiGooglepay, SiMastercard, SiTether, SiVisa } from "react-icons/si";
 import { site } from "@/site.config";
+import { PAYOUTS, fmtDate } from "@/lib/payouts";
 import { AssetIcon } from "./AssetIcon";
 import { CHALLENGE_RULES, PROFIT_SPLIT_BY_WITHDRAWAL as SPLIT } from "@/lib/rulebook";
 
@@ -250,95 +251,327 @@ export function ChallengeHead() {
   );
 }
 
-/* ───────── 3. Rewards showcase with phone ───────── */
+/* ───────── 3. Rewards: a real dashboard screen ───────── */
 
-function PhoneClock() {
-  const [now, setNow] = useState(null);
-  useEffect(() => {
-    setNow(new Date());
-    const t = setInterval(() => setNow(new Date()), 30000);
-    return () => clearInterval(t);
-  }, []);
-  const time = now ? now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : "09:14";
-  const date = now ? now.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) : "";
+/* App-window chrome shared by the product screens below. */
+function AppWindow({ path, children, className = "" }) {
   return (
-    <div className="uc-phone">
-      <div className="uc-phone-island" />
-      <div className="uc-phone-bar">
-        <span>{time}</span>
-      </div>
-      <div className="uc-phone-date">{date}</div>
-      <div className="uc-phone-time">{time}</div>
-      <div className="uc-notif">
-        <span className="uc-notif-ic">
-          <img src="/logo-icon.png" alt="" />
+    <div className={`aw ${className}`}>
+      <div className="aw-bar">
+        <span className="aw-dots">
+          <i />
+          <i />
+          <i />
         </span>
-        <div>
-          <div className="uc-notif-top">
-            <b>Reward requested</b>
-            <span>now</span>
-          </div>
-          <p>$4,120.00 is being reviewed. We&apos;ll let you know once it&apos;s approved.</p>
-        </div>
-      </div>
-      <div className="uc-notif uc-notif-2">
-        <span className="uc-notif-ic green">
-          <Bell size={14} />
+        <span className="aw-url">
+          {site.name} <span className="aw-sep">/</span> {path}
         </span>
-        <div>
-          <div className="uc-notif-top">
-            <b>Target reached</b>
-            <span>2h ago</span>
-          </div>
-          <p>Phase 1 complete on your $100K account.</p>
-        </div>
       </div>
+      <div className="aw-body">{children}</div>
     </div>
   );
 }
 
-export function Rewards() {
-  const tiers = TIERS.map(([k, v]) => [k, v, "Share"]);
+const fmtMoney = (n) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const REQUESTS = PAYOUTS.slice(0, 4).map((p, i) => ({
+  date: fmtDate(p.date),
+  acct: `#${(51842 + i * 317).toString()}`,
+  amount: p.amount,
+  method: i % 2 ? "Bank transfer" : "USDT · TRC20",
+  status: i === 0 ? "review" : "paid",
+}));
+
+function RewardDashboard() {
+  const [method, setMethod] = useState(0);
+  const profit = 4580;
+  const tier = 1; // 2nd reward
+  const share = SPLIT[tier];
+  const methods = site.payouts.items;
   return (
-    <section className="uc-sec uc-rewards" id="payouts">
+    <AppWindow path="rewards" className="rd">
+      <div className="rd-grid">
+        <div className="rd-card rd-request">
+          <div className="rd-card-h">
+            <span>Request reward</span>
+            <span className="rd-acct">2-Step · $100K · #51842</span>
+          </div>
+          <div className="rd-kv">
+            <span>Profit available</span>
+            <b>{fmtMoney(profit)}</b>
+          </div>
+          <div className="rd-kv">
+            <span>Your share</span>
+            <b>{share}%</b>
+          </div>
+          <div className="rd-total">
+            <span>You receive</span>
+            <b>{fmtMoney((profit * share) / 100)}</b>
+          </div>
+          <div className="rd-label">Payout method</div>
+          <div className="rd-methods">
+            {methods.map((m, i) => (
+              <button key={m} type="button" className={`rd-method ${i === method ? "on" : ""}`} onClick={() => setMethod(i)}>
+                <span className="rd-radio" />
+                {m}
+              </button>
+            ))}
+          </div>
+          <a href={site.links.start} className="rd-btn">
+            Request reward
+          </a>
+          <p className="rd-note">{site.payouts.note}</p>
+        </div>
+
+        <div className="rd-side">
+          <div className="rd-card">
+            <div className="rd-card-h">
+              <span>Reward split</span>
+              <span className="rd-muted">grows with every paid request</span>
+            </div>
+            <ol className="rd-steps">
+              {TIERS.map(([k, v], i) => (
+                <li key={k} className={i < tier ? "done" : i === tier ? "now" : ""}>
+                  <span className="rd-dot">{i < tier ? <Check size={12} strokeWidth={3} /> : null}</span>
+                  <b>{v}</b>
+                  <small>{k}</small>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div className="rd-card">
+            <div className="rd-card-h">
+              <span>Recent requests</span>
+              <a href="/payout-certificates" className="rd-link">
+                View all
+              </a>
+            </div>
+            <table className="rd-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th className="hide-sm">Method</th>
+                  <th className="r">Amount</th>
+                  <th className="r">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {REQUESTS.map((r) => (
+                  <tr key={r.acct}>
+                    <td>{r.date}</td>
+                    <td className="hide-sm rd-muted">{r.method}</td>
+                    <td className="r num">{fmtMoney(r.amount)}</td>
+                    <td className="r">
+                      <span className={`rd-status ${r.status}`}>{r.status === "paid" ? "Paid" : "In review"}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </AppWindow>
+  );
+}
+
+export function Rewards() {
+  return (
+    <section className="uc-sec uc-rewards" id="rewards">
       <div className="container">
-        <Title sub="What trading with a simulated account here is really like.">Over {site.numbers.stats[0].num} in simulated rewards</Title>
+        <Title sub="Request your reward from the dashboard and pick how you get paid. Your share goes up every time.">Over {site.numbers.stats[0].num} in simulated rewards</Title>
         <div className="center" data-reveal>
           <a href="/payout-policy" className="uc-btn uc-btn-white">
             See reward policy
           </a>
         </div>
-
-        <div className="uc-rw-stage" data-reveal>
-          <div className="uc-rw-col">
-            {tiers.map(([a, b, c]) => (
-              <div key={a} className="uc-rw-card">
-                <span className="uc-rw-lbl">{a}</span>
-                <b>{b}</b>
-                <span className="uc-rw-tag">{c}</span>
-              </div>
-            ))}
-          </div>
-          <PhoneClock />
-          <div className="uc-rw-col">
-            {site.payouts.items.map((p) => (
-              <div key={p} className="uc-rw-card">
-                <span className="uc-rw-lbl">Paid via</span>
-                <b className="sm">{p}</b>
-              </div>
-            ))}
-            <div className="uc-rw-card">
-              <span className="uc-rw-lbl">Minimum request</span>
-              <b className="sm">$100</b>
-            </div>
-          </div>
+        <div className="rd-stage" data-reveal>
+          <RewardDashboard />
         </div>
       </div>
     </section>
   );
 }
 
-/* ───────── 4. How it works ───────── */
+/* ───────── 4. How it works: one product screen per step ───────── */
+
+// Illustrative $100K 2-Step account; limits come from the live rulebook.
+const R2 = CHALLENGE_RULES.two_step_standard;
+const SIZE = 100000;
+const TARGET = (SIZE * R2.phase1TargetPercent) / 100;
+const DAILY = (SIZE * R2.dailyDrawdownPercent) / 100;
+const MAXL = (SIZE * R2.overallDrawdownPercent) / 100;
+const EQUITY = [0, 0.07, 0.03, 0.17, 0.26, 0.22, 0.41, 0.5, 0.46, 0.63, 0.72, 0.68, 0.8, 0.88, 0.85, 0.93, 0.97].map((k) => SIZE + Math.round(TARGET * k));
+const BAL = EQUITY.at(-1);
+const usd0 = (n) => `$${Math.round(n).toLocaleString("en-US")}`;
+
+function EquityChart() {
+  const w = 320;
+  const h = 90;
+  const min = Math.min(...EQUITY) - TARGET * 0.08;
+  const max = SIZE + TARGET * 1.08;
+  const pts = EQUITY.map((v, i) => [(i / (EQUITY.length - 1)) * w, h - ((v - min) / (max - min)) * h]);
+  const line = pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+  const target = h - ((SIZE + TARGET - min) / (max - min)) * h;
+  return (
+    <svg className="hw-chart" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="hwFill" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#22c55e" stopOpacity=".28" />
+          <stop offset="1" stopColor="#22c55e" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <line x1="0" x2={w} y1={target} y2={target} className="hw-target" />
+      <path d={`${line} L${w} ${h} L0 ${h} Z`} fill="url(#hwFill)" />
+      <path d={line} className="hw-line" />
+    </svg>
+  );
+}
+
+function Objective({ label, value, pct, ok, warn }) {
+  return (
+    <div className="hw-obj">
+      <span className={`hw-check ${ok ? "ok" : ""}`}>{ok ? <Check size={11} strokeWidth={3} /> : null}</span>
+      <span className="hw-obj-l">{label}</span>
+      <span className="hw-obj-v">{value}</span>
+      <i className={warn ? "warn" : ""}>
+        <em style={{ width: `${pct}%` }} />
+      </i>
+    </div>
+  );
+}
+
+function StepScreen({ step }) {
+  if (step === 0)
+    return (
+      <div className="hw-screen">
+        <div className="hw-h">New challenge</div>
+        <div className="hw-seg">
+          <span>1-Step</span>
+          <span className="on">2-Step</span>
+          <span>Instant</span>
+        </div>
+        <div className="hw-label">Account size</div>
+        <div className="hw-sizes">
+          {["$10K", "$25K", "$50K", "$100K", "$200K"].map((v) => (
+            <span key={v} className={v === "$100K" ? "on" : ""}>
+              {v}
+            </span>
+          ))}
+        </div>
+        <div className="hw-label">Platform</div>
+        <div className="hw-row">
+          <span className="hw-plat">MT5</span>
+          <span className="rd-muted">MetaTrader 5 · demo server</span>
+        </div>
+        <div className="hw-summary">
+          <div>
+            <span>Profit target</span>
+            <b>{R2.phase1TargetPercent}% / {R2.phase2TargetPercent}%</b>
+          </div>
+          <div>
+            <span>Max loss</span>
+            <b>{R2.overallDrawdownPercent}%</b>
+          </div>
+          <div>
+            <span>Time limit</span>
+            <b>None</b>
+          </div>
+        </div>
+      </div>
+    );
+  if (step === 1)
+    return (
+      <div className="hw-screen">
+        <div className="hw-acct">
+          <div>
+            <span className="rd-muted">Phase 1 · #51842</span>
+            <b>{fmtMoney(BAL)}</b>
+          </div>
+          <span className="rd-status review">Active</span>
+        </div>
+        <EquityChart />
+        <Objective label="Profit target" value={`${usd0(BAL - SIZE)} / ${usd0(TARGET)}`} pct={((BAL - SIZE) / TARGET) * 100} />
+        <Objective label="Daily loss" value={`$410 / ${usd0(DAILY)}`} pct={(410 / DAILY) * 100} ok warn />
+        <Objective label="Max loss" value={`$0 / ${usd0(MAXL)}`} pct={0} ok warn />
+        <Objective label="Winning days" value={`4 / ${R2.minTradingDaysEvaluation}`} pct={100} ok />
+      </div>
+    );
+  if (step === 2)
+    return (
+      <div className="hw-screen">
+        <div className="hw-h">Account status</div>
+        <ol className="hw-timeline">
+          {[
+            ["Phase 1 passed", "Profit target reached in 11 days"],
+            ["Phase 2 passed", "All objectives met"],
+            ["KYC verified", "Identity check approved"],
+            ["Qualified account issued", "$100K simulated account is live"],
+          ].map(([t, s], i) => (
+            <li key={t} className={i === 3 ? "now" : "done"}>
+              <span className="rd-dot">
+                <Check size={12} strokeWidth={3} />
+              </span>
+              <div>
+                <b>{t}</b>
+                <small>{s}</small>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <div className="hw-cred">
+          <div>
+            <span>Login</span>
+            <b>7340 1129</b>
+          </div>
+          <div>
+            <span>Server</span>
+            <b>MT5 · Demo</b>
+          </div>
+          <div>
+            <span>Password</span>
+            <b>••••••••</b>
+          </div>
+        </div>
+      </div>
+    );
+  return (
+    <div className="hw-screen">
+      <div className="hw-acct">
+        <div>
+          <span className="rd-muted">Reward #R-20931 · paid</span>
+          <b>{fmtMoney(2936.4)}</b>
+        </div>
+        <span className="rd-status paid">Paid</span>
+      </div>
+      <div className="hw-summary col">
+        <div>
+          <span>Profit</span>
+          <b>{fmtMoney(3262.67)}</b>
+        </div>
+        <div>
+          <span>Your share</span>
+          <b>90%</b>
+        </div>
+        <div>
+          <span>Method</span>
+          <b>USDT · TRC20</b>
+        </div>
+        <div>
+          <span>Sent to</span>
+          <b>TQ8x…f3Ka</b>
+        </div>
+        <div>
+          <span>Next cycle</span>
+          <b>in 14 days</b>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const STEP_PATHS = ["challenges/new", "accounts/51842", "accounts/51842/status", "rewards/R-20931"];
 
 export function HowItWorks() {
   const [open, setOpen] = useState(0);
@@ -354,17 +587,20 @@ export function HowItWorks() {
       <div className="container">
         <Title>How it works</Title>
         <div className="uc-how">
-          <div className="uc-how-art" aria-hidden="true">
-            {[2, 1, 0].map((i) => (
-              <div key={i} className={`uc-how-card c${i}`}>
-                {i === 0 && <span className="uc-how-num">{String(open + 1).padStart(2, "0")}</span>}
+          <div className="hw-art" aria-hidden="true">
+            <AppWindow path={STEP_PATHS[open]}>
+              <div key={open} className="hw-fade">
+                <StepScreen step={open} />
               </div>
-            ))}
+            </AppWindow>
           </div>
           <div className="uc-how-list">
             {steps.map((s, i) => (
               <button key={s.title} type="button" className={`uc-how-item ${i === open ? "open" : ""}`} onClick={() => setOpen(i)} aria-expanded={i === open}>
-                <span className="uc-how-h">{s.title}</span>
+                <span className="uc-how-h">
+                  <span className="hw-num">{String(i + 1).padStart(2, "0")}</span>
+                  {s.title}
+                </span>
                 <span className="uc-how-p">{s.text}</span>
                 <span className="uc-how-bar">
                   <span key={open} />
