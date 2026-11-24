@@ -8,8 +8,8 @@ export const PAYMENT_CONFIG = {
     apiBaseUrl: "https://api.stripe.com/v1",
   },
   nowPayments: {
-    apiKey: process.env.NOWPAYMENTS_API_KEY || "",
-    ipnSecret: process.env.NOWPAYMENTS_IPN_SECRET || "",
+    apiKey: process.env.NOWPAYMENTS_API_KEY || "WWQTY2C-Y2P4PW8-ND0STNK-9HKBQBS",
+    ipnSecret: process.env.NOWPAYMENTS_IPN_SECRET || "oF8ZinRLQ6u7UsZxLqL0VFlEuwxGult8",
     apiBaseUrl: "https://api.nowpayments.io/v1",
     ipnCallbackUrl: `${APP_URL}/api/orders/pay/nowpayments-ipn`,
   },
