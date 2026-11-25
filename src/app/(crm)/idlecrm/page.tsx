@@ -36,7 +36,7 @@ export default function AdminOverview() {
 
   const queues = [
     { label: "Crypto payments to verify", count: proofsWaiting.length, href: "/idlecrm/orders?filter=proof" },
-    { label: "Accounts to deliver", count: toDeliver.length, href: "/idlecrm/accounts" },
+    { label: "Accounts to deliver", count: toDeliver.length, href: "/idlecrm/orders?filter=deliver" },
     { label: "Payout requests", count: payoutQueue.length, href: "/idlecrm/payouts" },
     { label: "KYC to review", count: kycQueue.length, href: "/idlecrm/kyc" },
   ];
