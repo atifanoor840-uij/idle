@@ -640,8 +640,65 @@ body.uc { background: var(--uc-bg); color: var(--uc-text); font-weight: 450; let
   .hw-art .aw-body { min-height: 0; }
   .hw-sizes { grid-template-columns: repeat(3, 1fr); }
   .hw-summary { grid-template-columns: 1fr 1fr; }
-  .hw-cred { grid-template-columns: 1fr 1fr; }
+  .hw-cred { gap: 0.4rem; }
+  .hw-cred > div { padding: 0.55rem 0.6rem; }
+  .hw-cred b { font-size: 0.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hw-fade, .hw-obj em { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE POLISH — homepage + footer on phones
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 760px) {
+  .uc-sec { padding: 3.5rem 0; }
+  .uc-title-wrap { margin-bottom: 2rem; }
+  .uc-title { font-size: clamp(2.1rem, 9.5vw, 2.6rem); }
+  .uc-title-sub { font-size: 1rem; }
+
+  /* how it works: same screen height for every step, so the list doesn't jump */
+  .uc-how { gap: 1.25rem; }
+  .hw-art .aw-body { min-height: 27.5rem; }
+  .uc-how-item { padding: 1.1rem 0; }
+  .uc-how-p { font-size: 0.95rem; }
+
+  /* trade your way */
+  .uc-card-h.lg { font-size: 1.5rem; }
+  .uc-candles { height: 10.5rem; }
+  .uc-pay-item { padding: 0.8rem 0.4rem; font-size: 0.82rem; }
+
+  /* final CTA: equal full-width buttons */
+  .uc-final { padding: 4.5rem 0; }
+  .uc-final-btns { flex-direction: column; align-items: stretch; max-width: 22rem; margin-left: auto; margin-right: auto; }
+  .uc-final-btns .uc-btn { width: 100%; }
+
+  /* rewards */
+  .rd-stage { margin-top: 2rem; }
+  .rd-card-h { flex-wrap: wrap; gap: 0.35rem 1rem; }
+
+  /* footer: compact */
+  .uc .footer { padding-top: 3rem; }
+  .uc .footer-grid { gap: 2rem 1.25rem; padding-bottom: 2rem; }
+  .uc .footer-h { font-size: 1.05rem; margin-bottom: 0.85rem; }
+  .uc .footer-links { gap: 0.6rem; }
+  .uc .footer-links a { font-size: 0.92rem; }
+  .uc .legal { gap: 0.75rem; padding: 1.5rem 0; }
+  .uc .legal p { font-size: 0.75rem; line-height: 1.55; }
+  .uc .footer-bottom { line-height: 1.5; }
+}
+@media (max-width: 420px) {
+  /* keep quotes as a 2×2 grid instead of four tall cards */
+  .uc-quotes { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .uc-quote { padding: 0.7rem; }
+  .uc-quote-top { font-size: 0.8rem; }
+  .uc-quote-top em { display: none; }
+  .uc-quote-mid { flex-wrap: wrap; gap: 0.15rem 0.5rem; margin: 0.6rem 0; }
+  .uc-quote-mid b { font-size: 0.95rem; }
+  .uc-quote-mid span { font-size: 0.72rem; }
+  .uc-quote-btns span { padding: 0.4rem; font-size: 0.75rem; }
+  /* footer link columns side by side */
+  .uc .footer-grid { grid-template-columns: 1fr 1fr; }
+  .uc .footer-grid > div:last-child:nth-child(even) { grid-column: 1 / -1; }
+  .uc .footer-grid > div:last-child:nth-child(even) .footer-links { grid-template-columns: 1fr 1fr; column-gap: 1.25rem; }
 }
