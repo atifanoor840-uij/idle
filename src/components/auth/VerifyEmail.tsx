@@ -9,8 +9,8 @@ export default function VerifyEmail({ status, email: initialEmail }: { status: s
   if (status === "success") {
     return (
       <div className="auth-form">
-        <a href="/dashboard" className="btn btn-primary auth-submit">
-          Go to dashboard
+        <a href="/challenges" className="btn btn-primary auth-submit">
+          Buy your first challenge
         </a>
       </div>
     );

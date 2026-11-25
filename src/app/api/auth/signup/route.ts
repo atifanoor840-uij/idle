@@ -9,8 +9,8 @@ import {
 import { BRAND_NAME } from "@/lib/brand";
 import { signSession } from "@/lib/session";
 
-// Temporarily off: new traders are signed in and sent straight to the
-// dashboard. Set to false to bring back the verify-email step.
+// Temporarily off: new traders are signed in and sent straight to the buy
+// challenge page (a fresh account has no orders yet). Set to false to bring back the verify-email step.
 const SKIP_EMAIL_VERIFICATION = true;
 
 export async function POST(request: Request) {
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
         maxAge: 60 * 60 * 24 * 7,
       });
       const { passwordHash, ...userResponse } = newUser;
-      return NextResponse.json({ success: true, user: userResponse, redirectTo: "/dashboard" });
+      return NextResponse.json({ success: true, user: userResponse, redirectTo: "/challenges" });
     }
 
     const { token } = await createEmailVerificationToken(userId);
