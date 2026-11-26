@@ -27,9 +27,9 @@ export function Checklist({ items, bold = false, className = "" }) {
 export function LogoMark({ className = "logo-mark" }) {
   return (
     <svg className={className} viewBox="0 0 40 40" aria-hidden="true" fill="none">
-      <rect width="40" height="40" rx="9" fill="#0a0910" />
-      <rect x="18.5" y="4" width="3" height="32" rx="1.5" fill="#2efb0a" />
-      <rect x="14" y="10" width="12" height="20" rx="2" fill="#2efb0a" />
+      <rect width="40" height="40" rx="9" fill="#0b1a3f" />
+      <rect x="18.5" y="4" width="3" height="32" rx="1.5" fill="#3b82f6" />
+      <rect x="14" y="10" width="12" height="20" rx="2" fill="#3b82f6" />
     </svg>
   );
 }
@@ -67,7 +67,7 @@ export function Candles({ seed = 3, count = 40, w = 800, h = 300, trend = 0.4, m
       {data.map((d, i) => {
         const x = r1(i * step + step / 2);
         const up = d.c <= d.o;
-        const fill = mono ? "#34E834" : up ? "#34E834" : "#F65144";
+        const fill = mono ? "#3B82F6" : up ? "#3B82F6" : "#F65144";
         return (
           <g key={i} opacity={mono && !up ? 0.45 : 1}>
             <line x1={x} x2={x} y1={d.hi} y2={d.lo} stroke={fill} strokeWidth="1.2" />
@@ -75,12 +75,12 @@ export function Candles({ seed = 3, count = 40, w = 800, h = 300, trend = 0.4, m
           </g>
         );
       })}
-      {line && <polyline points={pts} fill="none" stroke="#34E834" strokeWidth="1.5" opacity=".55" />}
+      {line && <polyline points={pts} fill="none" stroke="#3B82F6" strokeWidth="1.5" opacity=".55" />}
     </svg>
   );
 }
 
-export function Spark({ seed = 5, w = 200, h = 60, className = "", color = "#34E834" }) {
+export function Spark({ seed = 5, w = 200, h = 60, className = "", color = "#3B82F6" }) {
   const data = makeCandles(seed, 30, h, 0.5);
   const step = w / 29;
   const pts = data.map((d, i) => `${r1(i * step)},${d.c}`).join(" ");

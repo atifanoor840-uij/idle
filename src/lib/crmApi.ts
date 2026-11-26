@@ -98,4 +98,26 @@ export const crm = {
     remove: (id: string) => del(`/api/challenge-inventory${q("id", id)}`),
   },
   audit: () => get<{ logs: AuditLog[] }>("/api/audit-logs"),
+  followUps: {
+    list: () => get<FollowUpData>(`/api/follow-ups?t=${Date.now()}`),
+    preview: (b: FollowUpDraft & { withOrder?: boolean; couponPercent?: number }) => post<{ subject: string; html: string }>("/api/follow-ups/preview", b),
+    send: (b: FollowUpDraft & { segment: FollowUpSegmentId; userIds: string[] }) =>
+      post<{ sentCount: number; failedCount: number; failed: string[] }>("/api/follow-ups/send", b),
+  },
+};
+
+export type FollowUpSegmentId = "unpaid_orders" | "unverified" | "no_orders" | "failed_challenge" | "all_traders" | "pricing";
+export type FollowUpRecipient = {
+  userId: string; name: string; email: string; createdAt: string;
+  orderId?: string; plan?: string; amount?: number; orderDate?: string; lastFollowUpAt?: string | null;
+};
+export type FollowUpDraft = { subject: string; title: string; message: string; ctaLabel: string; ctaUrl: string; coupon: string; planIds?: string[] };
+export type FollowUpPlan = { id: string; model: string; size: number; price: number };
+export type FollowUpData = {
+  segments: { id: FollowUpSegmentId; label: string; description: string; recipients: FollowUpRecipient[] }[];
+  presets: Record<FollowUpSegmentId, Omit<FollowUpDraft, "coupon" | "planIds">>;
+  coupons: { code: string; discountPercent: number }[];
+  plans: FollowUpPlan[];
+  emailConfigured: boolean;
+  provider: string;
 };

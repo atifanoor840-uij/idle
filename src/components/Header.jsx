@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Check, ChevronDown, Copy, Menu, X } from "lucide-react";
+import { Check, ChevronDown, Clock, Copy, Menu, X } from "lucide-react";
 import { site } from "@/site.config";
 
 function timeLeft(ms) {
@@ -72,6 +72,99 @@ export function TopBar() {
             Claim →
           </a>
         )}
+      </div>
+    </div>
+  );
+}
+
+// Scrolling offer ticker above the navbar (site.offerTicker). Coupon items are
+// checked live against /api/coupons, so only active, unexpired codes ever show.
+export function OfferTicker() {
+  const cfg = site.offerTicker;
+  const items = cfg?.items ?? [];
+  const [coupons, setCoupons] = useState({});
+  const [now, setNow] = useState(() => Date.now());
+  const [copied, setCopied] = useState(null);
+
+  // items is a static import, so this runs once per mount
+  useEffect(() => {
+    const codes = [...new Set(items.filter((i) => i.coupon).map((i) => i.coupon.toUpperCase()))];
+    if (!codes.length) return;
+    let off = false;
+    Promise.all(
+      codes.map((code) =>
+        fetch(`/api/coupons?code=${encodeURIComponent(code)}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .then((j) => [code, j?.coupon ?? null])
+          .catch(() => [code, null]),
+      ),
+    ).then((pairs) => !off && setCoupons(Object.fromEntries(pairs)));
+    return () => {
+      off = true;
+    };
+  }, [items]);
+
+  const hasExpiry = Object.values(coupons).some((c) => c?.expiresAt);
+  useEffect(() => {
+    if (!hasExpiry) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [hasExpiry]);
+
+  const live = items
+    .map((it) => {
+      if (!it.coupon) return it.value ? { ...it, key: `${it.label}-${it.value}` } : null;
+      const c = coupons[it.coupon.toUpperCase()];
+      if (!c) return null;
+      const left = c.expiresAt ? timeLeft(new Date(c.expiresAt).getTime() - now) : "";
+      if (left === null) return null; // expired since the page loaded
+      return { ...it, key: `coupon-${c.code}`, code: c.code, value: c.code, extra: `${c.discountPercent}% off`, left };
+    })
+    .filter(Boolean);
+
+  if (!live.length) return null;
+
+  const copy = (code) => {
+    navigator.clipboard?.writeText(code).then(() => {
+      setCopied(code);
+      setTimeout(() => setCopied(null), 1600);
+    });
+  };
+
+  // The list is rendered twice so the -50% scroll loops seamlessly; the copy is aria-hidden.
+  const group = (dup) =>
+    live.map((it) => (
+      <li key={`${dup ? "d" : "o"}-${it.key}`} className="ot-item">
+        <Clock size={13} className="ot-ic" aria-hidden="true" />
+        <span className="ot-label">{it.label}</span>
+        {it.code ? (
+          <button
+            type="button"
+            className="ot-value ot-code"
+            onClick={() => copy(it.code)}
+            tabIndex={dup ? -1 : 0}
+            aria-label={`Copy coupon code ${it.code}`}
+          >
+            {it.code}
+            {copied === it.code ? <Check size={12} /> : <Copy size={12} />}
+          </button>
+        ) : cfg.href ? (
+          <a href={cfg.href} className="ot-value" tabIndex={dup ? -1 : 0}>
+            {it.value}
+          </a>
+        ) : (
+          <span className="ot-value">{it.value}</span>
+        )}
+        {it.extra && <span className="ot-value">{it.extra}</span>}
+        {it.left && <span className="ot-left">ends {it.left}</span>}
+      </li>
+    ));
+
+  return (
+    <div className="offer-ticker" role="region" aria-label="Current offers">
+      <div className="ot-track" style={{ "--ot-dur": `${Math.max(20, live.length * 7)}s` }}>
+        <ul className="ot-group">{group(false)}</ul>
+        <ul className="ot-group" aria-hidden="true">{group(true)}</ul>
       </div>
     </div>
   );

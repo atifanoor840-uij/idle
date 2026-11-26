@@ -33,6 +33,23 @@ export const site = {
   // Set code to "" to hide the bar.
   couponBar: { code: "SAVE20", text: "Limited-time offer", href: "/pricing" },
 
+  // Scrolling offer ticker above the navbar. Two kinds of item:
+  //   { label, value }          – a fixed offer, always shown
+  //   { label, coupon: "CODE" } – a live coupon: checked against /api/coupons, shown
+  //                               with its real discount (and countdown if it has an
+  //                               expiry), hidden automatically when off or expired.
+  // Leave the array empty to hide the ticker.
+  offerTicker: {
+    href: "/pricing",
+    items: [
+      { label: "All types", value: "1-Step · 2-Step" },
+      { label: "Code", coupon: "SAVE20" },
+      { label: "Rewards", value: "Up to 90%" },
+      { label: "Capital", value: "Up to $200K" },
+      { label: "Payouts", value: "14-Day cycle" },
+    ],
+  },
+
   nav: [
     { label: "Pricing", href: "/pricing" },
     { label: "Payouts", href: "/payout-certificates" },

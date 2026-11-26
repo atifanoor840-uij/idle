@@ -18,18 +18,19 @@ const toCert = (c: ApiCertificate): Certificate => {
 function certSvg(c: Certificate) {
   const label = c.type === "Payout" ? "PAYOUT" : "CHALLENGE PASSED";
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="Plus Jakarta Sans, system-ui, sans-serif">
-<rect width="800" height="560" rx="24" fill="#0b0d10"/>
-<rect x="18" y="18" width="764" height="524" rx="16" fill="none" stroke="#34E834" stroke-opacity=".35" stroke-width="2"/>
-<g opacity=".08" fill="#34E834">${Array.from({ length: 14 }, (_, i) => `<rect x="${500 + i * 20}" y="${420 - i * 18 - (i % 3) * 14}" width="10" height="${40 + i * 18}" rx="2"/>`).join("")}</g>
-<rect x="60" y="60" width="44" height="44" rx="10" fill="#000" stroke="#2efb0a" stroke-opacity=".35"/>
-<rect x="80.5" y="66" width="3" height="32" rx="1.5" fill="#2efb0a"/><rect x="75" y="72" width="14" height="20" rx="2" fill="#2efb0a"/>
+<defs><linearGradient id="navyBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1e3a8a"/><stop offset="1" stop-color="#0b1a3f"/></linearGradient></defs>
+<rect width="800" height="560" rx="24" fill="url(#navyBg)"/>
+<rect x="18" y="18" width="764" height="524" rx="16" fill="none" stroke="#93c5fd" stroke-opacity=".35" stroke-width="2"/>
+<g opacity=".14" fill="#93c5fd">${Array.from({ length: 14 }, (_, i) => `<rect x="${500 + i * 20}" y="${420 - i * 18 - (i % 3) * 14}" width="10" height="${40 + i * 18}" rx="2"/>`).join("")}</g>
+<rect x="60" y="60" width="44" height="44" rx="10" fill="#0b1a3f" stroke="#93c5fd" stroke-opacity=".4"/>
+<rect x="80.5" y="66" width="3" height="32" rx="1.5" fill="#60a5fa"/><rect x="75" y="72" width="14" height="20" rx="2" fill="#60a5fa"/>
 <text x="118" y="90" fill="#fff" font-size="22" font-weight="800" letter-spacing="2">${esc(site.wordmark)}</text>
-<text x="60" y="190" fill="#34E834" font-size="16" font-weight="700" letter-spacing="4">${label} CERTIFICATE</text>
+<text x="60" y="190" fill="#93c5fd" font-size="16" font-weight="700" letter-spacing="4">${label} CERTIFICATE</text>
 <text x="60" y="250" fill="#fff" font-size="44" font-weight="800">${esc(c.name)}</text>
-<text x="60" y="300" fill="#9aa0a8" font-size="18">${c.type === "Payout" ? "has received a payout of" : "has passed the evaluation on an account of"}</text>
-<text x="60" y="370" fill="#34E834" font-size="56" font-weight="800">${money(c.amount)}</text>
-<text x="60" y="480" fill="#9aa0a8" font-size="15">${esc(c.plan)}</text>
-<text x="60" y="505" fill="#9aa0a8" font-size="15">${esc(dateFmt(c.date))} · ID ${esc(c.id)}</text>
+<text x="60" y="300" fill="#c7d4ee" font-size="18">${c.type === "Payout" ? "has received a payout of" : "has passed the evaluation on an account of"}</text>
+<text x="60" y="370" fill="#93c5fd" font-size="56" font-weight="800">${money(c.amount)}</text>
+<text x="60" y="480" fill="#c7d4ee" font-size="15">${esc(c.plan)}</text>
+<text x="60" y="505" fill="#c7d4ee" font-size="15">${esc(dateFmt(c.date))} · ID ${esc(c.id)}</text>
 </svg>`;
 }
 

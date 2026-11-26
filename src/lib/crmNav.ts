@@ -1,4 +1,4 @@
-import { Banknote, BadgeCheck, Boxes, ClipboardList, LayoutDashboard, ScrollText, Tag, Tags, Users } from "lucide-react";
+import { Banknote, BadgeCheck, Boxes, ClipboardList, LayoutDashboard, MailCheck, ScrollText, Tag, Tags, Users } from "lucide-react";
 import type { NavItem } from "./nav";
 
 export const crmNav: { label: string; items: NavItem[] }[] = [
@@ -10,6 +10,7 @@ export const crmNav: { label: string; items: NavItem[] }[] = [
       { label: "Payouts", href: "/idlecrm/payouts", icon: Banknote },
       { label: "KYC", href: "/idlecrm/kyc", icon: BadgeCheck },
       { label: "Users", href: "/idlecrm/users", icon: Users },
+      { label: "Follow-ups", href: "/idlecrm/follow-ups", icon: MailCheck },
     ],
   },
   {

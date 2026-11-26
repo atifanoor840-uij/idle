@@ -14,7 +14,7 @@ const TAGS = [
   ["14-DAY", "REWARD", "CYCLES"],
 ];
 
-const PALETTE = [0x065f2c, 0x0b6b32, 0x064e26, 0x0f7f3c, 0x053d1f, 0x047857, 0x0a5a2a];
+const PALETTE = [0x08215d, 0x0b286b, 0x061c4e, 0x0f317f, 0x05163d, 0x092973, 0x0a225a];
 
 function tagTexture(THREE, lines) {
   const c = document.createElement("canvas");
@@ -25,25 +25,25 @@ function tagTexture(THREE, lines) {
   g.beginPath();
   g.roundRect(10, 10, 340, 400, r);
   const bg = g.createLinearGradient(0, 0, 0, 420);
-  bg.addColorStop(0, "#0f2a1c");
-  bg.addColorStop(1, "#06120b");
+  bg.addColorStop(0, "#0d162c");
+  bg.addColorStop(1, "#050913");
   g.fillStyle = bg;
   g.fill();
   g.lineWidth = 6;
-  g.strokeStyle = "rgba(74, 222, 128, 0.7)";
+  g.strokeStyle = "rgba(96, 165, 250, 0.7)";
   g.stroke();
   g.textAlign = "center";
-  g.fillStyle = "#dcfce7";
+  g.fillStyle = "#dce6fc";
   g.font = "800 46px 'Hanken Grotesk', system-ui, sans-serif";
   g.fillText(lines[0], 180, 120);
   g.fillStyle = "#ffffff";
   g.font = "900 82px 'Hanken Grotesk', system-ui, sans-serif";
   g.fillText(lines[1], 180, 215);
-  g.fillStyle = "#4ade80";
+  g.fillStyle = "#60a5fa";
   g.font = "700 34px 'Hanken Grotesk', system-ui, sans-serif";
   g.fillText(lines[2], 180, 285);
   // little chevron mark
-  g.strokeStyle = "#4ade80";
+  g.strokeStyle = "#60a5fa";
   g.lineWidth = 10;
   g.lineCap = "round";
   g.lineJoin = "round";
@@ -63,9 +63,9 @@ function glowTexture(THREE) {
   c.width = c.height = 256;
   const g = c.getContext("2d");
   const grd = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-  grd.addColorStop(0, "rgba(180,255,205,0.95)");
-  grd.addColorStop(0.25, "rgba(74,222,128,0.55)");
-  grd.addColorStop(1, "rgba(22,163,74,0)");
+  grd.addColorStop(0, "rgba(186,205,249,0.95)");
+  grd.addColorStop(0.25, "rgba(96,165,250,0.55)");
+  grd.addColorStop(1, "rgba(30,58,138,0)");
   g.fillStyle = grd;
   g.fillRect(0, 0, 256, 256);
   const t = new THREE.CanvasTexture(c);
@@ -128,7 +128,7 @@ export default function HeroScene() {
       host.appendChild(canvas);
 
       const scene = new THREE.Scene();
-      scene.fog = new THREE.Fog(0x040a06, 12, 56);
+      scene.fog = new THREE.Fog(0x03050b, 12, 56);
       const pmrem = new THREE.PMREMGenerator(renderer);
       const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
       scene.environment = envRT.texture;
@@ -138,17 +138,17 @@ export default function HeroScene() {
       const look = new THREE.Vector3(0, 2.4, -30);
 
       // lights — green key at the vanishing point, cool rim near the camera
-      scene.add(new THREE.AmbientLight(0x1c4a30, 0.45));
-      const far = new THREE.PointLight(0x4ade80, 300, 80, 1.1);
+      scene.add(new THREE.AmbientLight(0x17284f, 0.45));
+      const far = new THREE.PointLight(0x60a5fa, 300, 80, 1.1);
       far.position.set(0, 4, -30);
       scene.add(far);
-      const near = new THREE.PointLight(0xbbf7d0, 45, 40, 1.4);
+      const near = new THREE.PointLight(0xbbcdf7, 45, 40, 1.4);
       near.position.set(0, 7, 3);
       scene.add(near);
-      const key = new THREE.DirectionalLight(0x86efac, 0.9);
+      const key = new THREE.DirectionalLight(0x93c5fd, 0.9);
       key.position.set(-6, 10, 6);
       scene.add(key);
-      const key2 = new THREE.DirectionalLight(0xecfdf5, 0.55);
+      const key2 = new THREE.DirectionalLight(0xecf1fd, 0.55);
       key2.position.set(8, 6, -4);
       scene.add(key2);
 
@@ -164,7 +164,7 @@ export default function HeroScene() {
         clearcoat: 1,
         clearcoatRoughness: 0.06,
         envMapIntensity: 0.75,
-        emissive: 0x0a4f27,
+        emissive: 0x0a1f4f,
         emissiveIntensity: 0.55
       });
       // glass look: dark at the base, bright towards the top, glowing edges (fresnel)
@@ -230,13 +230,13 @@ export default function HeroScene() {
       // floor: dark mirror-ish plane + faint grid + glowing runway
       const floor = new THREE.Mesh(
         new THREE.PlaneGeometry(60, 140),
-        new THREE.MeshStandardMaterial({ color: 0x030805, metalness: 0.85, roughness: 0.38, envMapIntensity: 0.6 })
+        new THREE.MeshStandardMaterial({ color: 0x020409, metalness: 0.85, roughness: 0.38, envMapIntensity: 0.6 })
       );
       floor.rotation.x = -Math.PI / 2;
       floor.position.z = -50;
       scene.add(floor);
 
-      const grid = new THREE.GridHelper(60, 60, 0x14532d, 0x0b2a18);
+      const grid = new THREE.GridHelper(60, 60, 0x142753, 0x0b142a);
       grid.material.transparent = true;
       grid.material.opacity = 0.35;
       grid.position.y = 0.01;

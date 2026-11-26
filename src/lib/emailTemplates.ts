@@ -11,6 +11,10 @@ export type BrandedEmailInput = {
   details?: EmailDetail[];
   action?: EmailAction;
   sentAt?: Date;
+  /** Overrides the big heading (defaults to the subject). */
+  heading?: string;
+  /** Overrides the small label above the heading. */
+  eyebrow?: string;
 };
 
 type EmailKind = "welcome" | "login" | "order" | "payment" | "delivery" | "challenge" | "kyc" | "payout" | "referral" | "security" | "newsletter" | "general";
@@ -22,7 +26,7 @@ const EMAIL_LOGO_URL = process.env.EMAIL_LOGO_URL || `${APP_URL}/logo.png`;
 
 // Website design tokens (src/app/(marketing)/globals.css).
 const THEME = {
-  green: "#34e834",
+  green: "#1e3a8a", // brand navy (key kept for existing references)
   black: "#000000",
   ink: "#141413",
   card: "#f6f6f6",
@@ -135,6 +139,7 @@ function renderDetails(details: EmailDetail[]) {
 export function renderBrandedEmail(input: BrandedEmailInput) {
   const kind = inferKind(input.subject);
   const copy = templateCopy(kind);
+  if (input.eyebrow) copy.eyebrow = input.eyebrow;
   const baseUrl = appUrl();
   const action = input.action || { label: copy.button, url: `${baseUrl}${DEFAULT_PATHS[kind]}` };
   const supportEmail = SUPPORT_EMAIL;
@@ -168,7 +173,7 @@ export function renderBrandedEmail(input: BrandedEmailInput) {
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${THEME.card};"><tr><td align="center" style="padding:32px 12px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="width:100%;max-width:620px;background:#ffffff;border-radius:20px;overflow:hidden;">
 <tr><td class="px" style="padding:22px 36px;background:${THEME.black};"><a href="${escapeHtml(baseUrl)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;text-decoration:none;"><img src="${escapeHtml(EMAIL_LOGO_URL)}" height="32" alt="${BRAND_NAME}" style="display:block;height:32px;width:auto;max-width:160px;border:0;"></a></td></tr>
 <tr><td style="height:4px;background:${copy.accent};font-size:0;line-height:0;">&nbsp;</td></tr>
-<tr><td class="px" style="padding:38px 36px 34px;"><table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 18px;"><tr><td style="background:${copy.accent};color:${THEME.black};border-radius:10px;padding:5px 10px;font-size:10px;line-height:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">${escapeHtml(copy.eyebrow)}</td></tr></table><h1 class="h1" style="margin:0 0 18px;color:${THEME.black};font-size:30px;line-height:37px;font-weight:700;letter-spacing:-.02em;">${escapeHtml(input.subject)}</h1><p style="margin:0 0 14px;color:${THEME.ink};font-size:16px;line-height:25px;font-weight:500;">Hi ${escapeHtml(recipientName)},</p><p style="margin:0;color:${THEME.ink};font-size:15px;line-height:25px;font-weight:400;">${escapeHtml(displayMessage).replace(/\n/g, "<br>")}</p>${renderDetails(uniqueDetails)}<table role="presentation" cellspacing="0" cellpadding="0" style="margin:28px 0 6px;"><tr><td style="border-radius:6px;background:${THEME.green};"><a href="${escapeHtml(action.url)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:14px 28px;color:${THEME.black};font-size:15px;line-height:20px;font-weight:700;text-decoration:none;border-radius:6px;">${escapeHtml(action.label)}</a></td></tr></table><p style="margin:26px 0 0;padding-top:22px;border-top:1px solid ${THEME.line};color:${THEME.muted};font-size:13px;line-height:21px;">${helpText}</p></td></tr>
+<tr><td class="px" style="padding:38px 36px 34px;"><table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 18px;"><tr><td style="background:${copy.accent};color:${THEME.black};border-radius:10px;padding:5px 10px;font-size:10px;line-height:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">${escapeHtml(copy.eyebrow)}</td></tr></table><h1 class="h1" style="margin:0 0 18px;color:${THEME.black};font-size:30px;line-height:37px;font-weight:700;letter-spacing:-.02em;">${escapeHtml(input.heading?.trim() || input.subject)}</h1><p style="margin:0 0 14px;color:${THEME.ink};font-size:16px;line-height:25px;font-weight:500;">Hi ${escapeHtml(recipientName)},</p><p style="margin:0;color:${THEME.ink};font-size:15px;line-height:25px;font-weight:400;">${escapeHtml(displayMessage).replace(/\n/g, "<br>")}</p>${renderDetails(uniqueDetails)}<table role="presentation" cellspacing="0" cellpadding="0" style="margin:28px 0 6px;"><tr><td style="border-radius:6px;background:${THEME.green};"><a href="${escapeHtml(action.url)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:14px 28px;color:${THEME.black};font-size:15px;line-height:20px;font-weight:700;text-decoration:none;border-radius:6px;">${escapeHtml(action.label)}</a></td></tr></table><p style="margin:26px 0 0;padding-top:22px;border-top:1px solid ${THEME.line};color:${THEME.muted};font-size:13px;line-height:21px;">${helpText}</p></td></tr>
 <tr><td class="px" style="padding:30px 36px;background:${THEME.black};"><img src="${escapeHtml(EMAIL_LOGO_URL)}" height="22" alt="${BRAND_NAME}" style="display:block;height:22px;width:auto;max-width:110px;border:0;margin:0 0 14px;"><p style="margin:0 0 18px;color:${THEME.muted};font-size:12px;line-height:19px;">${escapeHtml(site.tagline.join(" · "))}</p><p style="margin:0 0 20px;font-size:12px;line-height:20px;">${footerLinks}</p><p style="margin:0 0 12px;color:${THEME.muted};font-size:11px;line-height:17px;"><strong style="color:#ffffff;font-weight:500;">Risk warning:</strong> ${escapeHtml(site.footer.riskWarning)}</p><p style="margin:0 0 12px;color:${THEME.muted};font-size:11px;line-height:17px;">${escapeHtml(BRAND_NAME)} is a brand name of ${escapeHtml(legal.name)}, registered in England (Company No. ${escapeHtml(legal.companyNumber)}). Registered office: ${escapeHtml(legal.registeredOffice)}.</p><p style="margin:0;color:#ffffff;font-size:11px;line-height:17px;">This email was sent to ${escapeHtml(input.recipientEmail || "your registered address")}. &copy; ${year} ${escapeHtml(BRAND_NAME)}. All rights reserved.</p></td></tr></table></td></tr></table></body></html>`;
 
   const plainDetails = uniqueDetails.length ? `\n\nDetails\n${uniqueDetails.map(({ label, value }) => `${label}: ${value}`).join("\n")}` : "";

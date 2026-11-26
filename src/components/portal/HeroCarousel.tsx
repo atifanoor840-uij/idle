@@ -65,7 +65,7 @@ export default function HeroCarousel({ offers }: { offers: Offer[] }) {
     <section className="portal-hero relative overflow-hidden rounded-card" aria-roledescription="carousel">
             <div className="relative grid min-h-[240px] items-center gap-6 px-5 pb-12 pt-7 sm:min-h-[260px] sm:grid-cols-[1fr_auto] sm:px-14 md:py-10">
         <div key={i} className="max-w-xl animate-[fadeIn_.4s_ease-out]">
-          <span className="inline-flex rounded-full border border-[#4ade80]/30 bg-[#4ade80]/10 px-3 py-1 text-[12px] font-semibold tracking-wide text-[#4ade80]">{o.tag}</span>
+          <span className="inline-flex rounded-full border border-[#60a5fa]/30 bg-[#60a5fa]/10 px-3 py-1 text-[12px] font-semibold tracking-wide text-[#60a5fa]">{o.tag}</span>
           <h2 className="mt-3.5 portal-hero-title text-[28px] font-extrabold leading-[1.02] tracking-[-0.03em] sm:mt-4 sm:text-[34px] md:text-[46px]">
             {o.title.split("\n").map((l, k) => (
               <Fragment key={k}>
@@ -108,7 +108,7 @@ export default function HeroCarousel({ offers }: { offers: Offer[] }) {
             aria-label={`Offer ${k + 1}`}
             aria-current={k === i}
             onClick={() => setI(k)}
-            className={cx("h-1.5 rounded-full transition-all", k === i ? "w-6 bg-[#4ade80]" : "w-1.5 bg-white/25")}
+            className={cx("h-1.5 rounded-full transition-all", k === i ? "w-6 bg-[#60a5fa]" : "w-1.5 bg-white/25")}
           />
         ))}
       </div>

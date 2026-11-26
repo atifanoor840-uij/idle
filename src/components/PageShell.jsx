@@ -1,4 +1,4 @@
-import { Nav } from "./Header";
+import { Nav, OfferTicker } from "./Header";
 import Footer from "./Footer";
 import ChatWidget from "./ChatWidget";
 import Reveal from "./Reveal";
@@ -8,6 +8,7 @@ import { Rich } from "./ui";
 export default function PageShell({ children }) {
   return (
     <>
+      <OfferTicker />
       <Nav />
       <main>{children}</main>
       <Footer />

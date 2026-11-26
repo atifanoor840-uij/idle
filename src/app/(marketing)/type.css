@@ -22,7 +22,7 @@
 
 /* big section + page titles: the hero gradient */
 .uc .uc-title, .uc .page-h1 {
-  background: linear-gradient(90deg, #7d8a83 0%, #fafafa 28%, #fafafa 72%, #7d8a83 100%);
+  background: linear-gradient(90deg, #7d818a 0%, #fafafa 28%, #fafafa 72%, #7d818a 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -57,6 +57,6 @@
   font-family: var(--font);
   letter-spacing: 0.1em;
   color: #fff;
-  background: rgba(22, 163, 74, 0.1);
-  border-color: rgba(74, 222, 128, 0.25);
+  background: rgba(30, 58, 138, 0.1);
+  border-color: rgba(96, 165, 250, 0.25);
 }

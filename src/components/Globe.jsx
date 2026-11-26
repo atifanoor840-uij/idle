@@ -70,7 +70,7 @@ const ARCS = ROUTES.map(([a, b], i) => {
 });
 
 const THEMES = {
-  green: { dot: "134, 239, 172", rim: "74, 222, 128", arc: "187, 247, 208", core: "#04120a", edge: "#0b2a18" },
+  green: { dot: "134, 165, 239", rim: "74, 118, 222", arc: "187, 205, 247", core: "#040812", edge: "#0b142a" },
   blue: { dot: "125, 211, 252", rim: "96, 165, 250", arc: "191, 219, 254", core: "#07142b", edge: "#0d2550" },
 };
 

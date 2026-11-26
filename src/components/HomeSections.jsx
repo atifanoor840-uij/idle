@@ -418,8 +418,8 @@ function EquityChart() {
     <svg className="hw-chart" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id="hwFill" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#22c55e" stopOpacity=".28" />
-          <stop offset="1" stopColor="#22c55e" stopOpacity="0" />
+          <stop offset="0" stopColor="#2563eb" stopOpacity=".28" />
+          <stop offset="1" stopColor="#2563eb" stopOpacity="0" />
         </linearGradient>
       </defs>
       <line x1="0" x2={w} y1={target} y2={target} className="hw-target" />
@@ -651,11 +651,11 @@ function CandleChart() {
       {[0.25, 0.5, 0.75].map((g) => (
         <line key={g} x1="0" x2="440" y1={H * g} y2={H * g} stroke="currentColor" strokeOpacity=".08" />
       ))}
-      <line x1="0" x2="440" y1={y(last)} y2={y(last)} stroke="#4ade80" strokeOpacity=".5" strokeDasharray="3 3" />
+      <line x1="0" x2="440" y1={y(last)} y2={y(last)} stroke="#60a5fa" strokeOpacity=".5" strokeDasharray="3 3" />
       {CANDLES.map((c, i) => {
         const x = 8 + i * 12.6;
         const up = c.c >= c.o;
-        const col = up ? "#4ade80" : "#f87171";
+        const col = up ? "#60a5fa" : "#f87171";
         return (
           <g key={i}>
             <line x1={x} x2={x} y1={y(c.hi)} y2={y(c.lo)} stroke={col} strokeWidth="1" />

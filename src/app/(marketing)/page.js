@@ -1,4 +1,4 @@
-import { Nav } from "@/components/Header";
+import { Nav, OfferTicker } from "@/components/Header";
 import Hero from "@/components/Hero";
 import Pricing from "@/components/Pricing";
 import { HomeCta, HowItWorks, Rewards, TradeYourWay } from "@/components/HomeSections";
@@ -23,6 +23,7 @@ export default async function Home() {
   const models = await getPublicPricing();
   return (
     <>
+      <OfferTicker />
       <Nav />
       <main>
         <Hero />
