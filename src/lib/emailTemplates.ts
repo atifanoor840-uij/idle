@@ -1,5 +1,4 @@
 import { APP_URL, BRAND_NAME, SUPPORT_EMAIL } from "@/lib/brand";
-import { site } from "@/site.config";
 export type EmailDetail = { label: string; value: string };
 export type EmailAction = { label: string; url: string };
 
@@ -20,10 +19,7 @@ export type BrandedEmailInput = {
 type EmailKind = "welcome" | "login" | "order" | "payment" | "delivery" | "challenge" | "kyc" | "payout" | "referral" | "security" | "newsletter" | "general";
 
 
-// PNG recommended: Gmail/Outlook do not render SVG. Set EMAIL_LOGO_URL to a hosted PNG of your logo.
-// logo.png is the white wordmark the website shows on its black header.
-const EMAIL_LOGO_URL = process.env.EMAIL_LOGO_URL || `${APP_URL}/logo.png`;
-
+// Emails show the brand name as text (no logo image) and a minimal footer.
 // Website design tokens (src/app/(marketing)/globals.css).
 const THEME = {
   green: "#1e3a8a", // brand navy (key kept for existing references)
@@ -36,13 +32,6 @@ const THEME = {
   font: "'DM Sans',Arial,Helvetica,sans-serif",
 };
 
-const FOOTER_LINKS = [
-  { label: "Trading Rules", href: "/rules" },
-  { label: "Reward Policy", href: "/payout-policy" },
-  { label: "Terms of Service", href: "/terms" },
-  { label: "Privacy Policy", href: "/privacy" },
-  { label: "Contact Us", href: "/contact" },
-];
 
 function escapeHtml(value: unknown) {
   return String(value ?? "")
@@ -164,19 +153,26 @@ export function renderBrandedEmail(input: BrandedEmailInput) {
   const helpText = kind === "login" || kind === "security"
     ? `If you did not make this request, reset your password and contact ${supportLink} immediately.`
     : `Need help? Our team is available 24/7 at ${supportLink}.`;
-  const year = sentAt.getUTCFullYear();
-  const legal = site.legalEntity;
-  const footerLinks = FOOTER_LINKS.map((link) => `<a href="${escapeHtml(baseUrl + link.href)}" target="_blank" rel="noopener noreferrer" style="color:${THEME.muted};text-decoration:none;">${escapeHtml(link.label)}</a>`).join(`<span style="color:#333;">&nbsp;&nbsp;|&nbsp;&nbsp;</span>`);
 
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light"><title>${escapeHtml(input.subject)}</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"><style>body,td,p,a,h1{font-family:${THEME.font}!important}@media (max-width:620px){.px{padding-left:22px!important;padding-right:22px!important}.h1{font-size:25px!important;line-height:31px!important}}</style></head>
 <body style="margin:0;padding:0;background:${THEME.card};color:${THEME.black};font-family:${THEME.font};-webkit-font-smoothing:antialiased;"><div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(copy.intro)}</div>
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${THEME.card};"><tr><td align="center" style="padding:32px 12px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="width:100%;max-width:620px;background:#ffffff;border-radius:20px;overflow:hidden;">
-<tr><td class="px" style="padding:22px 36px;background:${THEME.black};"><a href="${escapeHtml(baseUrl)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;text-decoration:none;"><img src="${escapeHtml(EMAIL_LOGO_URL)}" height="32" alt="${BRAND_NAME}" style="display:block;height:32px;width:auto;max-width:160px;border:0;"></a></td></tr>
+<tr><td class="px" style="padding:22px 36px;background:${THEME.black};"><a href="${escapeHtml(baseUrl)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;"><span style="color:#ffffff;font-size:22px;line-height:28px;font-weight:700;letter-spacing:-.01em;text-decoration:none;">${escapeHtml(BRAND_NAME)}</span></a></td></tr>
 <tr><td style="height:4px;background:${copy.accent};font-size:0;line-height:0;">&nbsp;</td></tr>
 <tr><td class="px" style="padding:38px 36px 34px;"><table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 18px;"><tr><td style="background:${copy.accent};color:${THEME.black};border-radius:10px;padding:5px 10px;font-size:10px;line-height:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">${escapeHtml(copy.eyebrow)}</td></tr></table><h1 class="h1" style="margin:0 0 18px;color:${THEME.black};font-size:30px;line-height:37px;font-weight:700;letter-spacing:-.02em;">${escapeHtml(input.heading?.trim() || input.subject)}</h1><p style="margin:0 0 14px;color:${THEME.ink};font-size:16px;line-height:25px;font-weight:500;">Hi ${escapeHtml(recipientName)},</p><p style="margin:0;color:${THEME.ink};font-size:15px;line-height:25px;font-weight:400;">${escapeHtml(displayMessage).replace(/\n/g, "<br>")}</p>${renderDetails(uniqueDetails)}<table role="presentation" cellspacing="0" cellpadding="0" style="margin:28px 0 6px;"><tr><td style="border-radius:6px;background:${THEME.green};"><a href="${escapeHtml(action.url)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:14px 28px;color:${THEME.black};font-size:15px;line-height:20px;font-weight:700;text-decoration:none;border-radius:6px;">${escapeHtml(action.label)}</a></td></tr></table><p style="margin:26px 0 0;padding-top:22px;border-top:1px solid ${THEME.line};color:${THEME.muted};font-size:13px;line-height:21px;">${helpText}</p></td></tr>
-<tr><td class="px" style="padding:30px 36px;background:${THEME.black};"><img src="${escapeHtml(EMAIL_LOGO_URL)}" height="22" alt="${BRAND_NAME}" style="display:block;height:22px;width:auto;max-width:110px;border:0;margin:0 0 14px;"><p style="margin:0 0 18px;color:${THEME.muted};font-size:12px;line-height:19px;">${escapeHtml(site.tagline.join(" · "))}</p><p style="margin:0 0 20px;font-size:12px;line-height:20px;">${footerLinks}</p><p style="margin:0 0 12px;color:${THEME.muted};font-size:11px;line-height:17px;"><strong style="color:#ffffff;font-weight:500;">Risk warning:</strong> ${escapeHtml(site.footer.riskWarning)}</p><p style="margin:0 0 12px;color:${THEME.muted};font-size:11px;line-height:17px;">${escapeHtml(BRAND_NAME)} is a brand name of ${escapeHtml(legal.name)}, registered in England (Company No. ${escapeHtml(legal.companyNumber)}). Registered office: ${escapeHtml(legal.registeredOffice)}.</p><p style="margin:0;color:#ffffff;font-size:11px;line-height:17px;">This email was sent to ${escapeHtml(input.recipientEmail || "your registered address")}. &copy; ${year} ${escapeHtml(BRAND_NAME)}. All rights reserved.</p></td></tr></table></td></tr></table></body></html>`;
+<tr><td class="px" align="center" style="padding:22px 36px;background:${THEME.black};"><span style="color:#ffffff;font-size:16px;line-height:22px;font-weight:700;">${escapeHtml(BRAND_NAME)}</span></td></tr></table></td></tr></table></body></html>`;
 
   const plainDetails = uniqueDetails.length ? `\n\nDetails\n${uniqueDetails.map(({ label, value }) => `${label}: ${value}`).join("\n")}` : "";
-  const text = `${input.subject}\n\nHi ${recipientName},\n\n${input.message}${plainDetails}\n\n${action.label}: ${action.url}\n\nNeed help? ${supportEmail || `${baseUrl}/contact`}\n\nRisk warning: ${site.footer.riskWarning}\n\n${BRAND_NAME} is a brand name of ${legal.name} (Company No. ${legal.companyNumber}).\n(c) ${year} ${BRAND_NAME}.`;
+  const text = `${input.subject}
+
+Hi ${recipientName},
+
+${input.message}${plainDetails}
+
+${action.label}: ${action.url}
+
+Need help? ${supportEmail || `${baseUrl}/contact`}
+
+${BRAND_NAME}`;
   return { html, text, kind };
 }
