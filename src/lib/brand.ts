@@ -4,14 +4,10 @@ import { site } from "@/site.config";
 
 export const BRAND_NAME: string = site.name;
 
-export const APP_URL = (
-  process.env.NEXT_PUBLIC_APP_URL ||
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.APP_URL ||
-  "http://localhost:3000"
-).replace(/\/+$/, "");
+// Hardcoded live domain: every email/link points here, never localhost.
+export const APP_URL = "https://idle4ex.site";
 
-export const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "";
+export const SUPPORT_EMAIL = "support@idle4ex.site";
 
 /** Slug for machine identifiers (user agents, gateway external ids). */
 export const BRAND_SLUG = BRAND_NAME.toLowerCase().replace(/[^a-z0-9]+/g, "-");

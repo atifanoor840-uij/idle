@@ -1,6 +1,6 @@
 import { APP_URL } from "@/lib/brand";
 export const PAYMENT_CONFIG = {
-  appUrl: process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "",
+  appUrl: APP_URL,
   stripe: {
     publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "",
     secretKey: process.env.STRIPE_SECRET_KEY || "",

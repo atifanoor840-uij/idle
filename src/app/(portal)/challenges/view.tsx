@@ -1,15 +1,15 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { Check, ShieldCheck, Tag as TagIcon } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { ArrowRight, Check, Headphones, Lock, Tag as TagIcon, Zap } from "lucide-react";
 import { money } from "@/lib/mock";
 import { api, ApiError, checkoutTotal, goToSignin, type PlanModel, type PricingPlan } from "@/lib/propApi";
 import { MODEL_LABEL, useApi } from "@/lib/portal-data";
-import { CHALLENGE_RULES, flexPriceSplit, normalizeChallengeRuleKey, WEEKEND_HOLDING_ADDON_PERCENT, OVERNIGHT_HOLDING_ADDON_PERCENT } from "@/lib/rulebook";
+import { flexPriceSplit, WEEKEND_HOLDING_ADDON_PERCENT, OVERNIGHT_HOLDING_ADDON_PERCENT } from "@/lib/rulebook";
 import { MANUAL_CRYPTO_PAYMENT_METHOD, MANUAL_WALLETS } from "@/config/manualWallets";
 import { trackPixel } from "@/components/MetaPixel";
 import { CRYPTO_ICONS, PaymentIcons } from "@/components/portal/PaymentIcons";
-import { btnPrimary, btnSecondary, Card, cx, FormMessage, LoadState } from "@/components/portal/ui";
-import { Field, inputCls, KV, PageHeader, Segmented, Tabs } from "@/components/portal/kit";
+import { btnPrimary, btnSecondary, cx, FormMessage, LoadState } from "@/components/portal/ui";
+import { Field, inputCls, KV, PageHeader } from "@/components/portal/kit";
 
 const k = (n: number) => (n >= 1_000_000 ? `$${n / 1_000_000}M` : `$${n / 1000}K`);
 const MODEL_ORDER: PlanModel[] = ["Two Step", "One Step", "Instant", "Flex"];
@@ -71,7 +71,6 @@ export default function ChallengesView() {
   // Any change to what is being bought invalidates a pending price confirmation.
   useEffect(() => setConfirmAmount(null), [plan?.id, weekend, overnight, coupon, payMethod]);
 
-  const rule = CHALLENGE_RULES[normalizeChallengeRuleKey(model)];
   // Flex: pay the upfront fee now, the rest after passing; it already allows overnight/weekend holding.
   const isFlex = model === "Flex";
   const flex = plan && isFlex ? flexPriceSplit(plan.price, plan.upfrontPrice, coupon?.pct) : null;
@@ -126,7 +125,7 @@ export default function ChallengesView() {
   if (loading || error) {
     return (
       <div className="space-y-5">
-        <PageHeader title="Challenges" sub="Pick a program and simulated account size. Pass the evaluation and earn performance rewards." />
+        <PageHeader title="Buy a Challenge" sub="Pick a program and simulated account size. Pass the evaluation and earn performance rewards." />
         <LoadState loading={loading} error={error} onRetry={reload} />
       </div>
     );
@@ -135,212 +134,262 @@ export default function ChallengesView() {
   if (!models.length) {
     return (
       <div className="space-y-5">
-        <PageHeader title="Challenges" />
+        <PageHeader title="Buy a Challenge" />
         <FormMessage tone="info">No challenges are on sale right now. Please check back soon.</FormMessage>
       </div>
     );
   }
 
   const shownTotal = confirmAmount ?? total;
+  const fromPrice = (m: PlanModel) => Math.min(...(data?.plans ?? []).filter((p) => p.model === m).map((p) => p.price));
+  const discounted = (price: number) => (coupon?.pct ? price * (1 - coupon.pct / 100) : price);
+
   return (
-    <div className="space-y-5">
-      <PageHeader title="Challenges" sub="Pick a program and simulated account size. Pass the evaluation and earn performance rewards." />
+    <div className="space-y-6">
+      <PageHeader title="Buy a Challenge" sub="Configure your simulated evaluation account in a few steps. Pass the evaluation and earn performance rewards." />
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+        {/* ── Configuration ── */}
         <div className="min-w-0 space-y-5">
-          <Card>
-            <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-muted">Account type</h3>
-            <Segmented
-              label="Account type"
-              options={models}
-              value={model}
-              onChange={(m) => {
-                setModel(m);
-                setPlanId("");
-              }}
-              render={(m) => MODEL_LABEL[m]}
-              cols={models.length > 3 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}
-            />
-
-            <h3 className="mb-3 mt-6 text-[13px] font-semibold uppercase tracking-wide text-muted">Account size</h3>
-            <Segmented
-              label="Account size"
-              options={sizes.map((p) => p.id)}
-              value={plan?.id ?? ""}
-              onChange={setPlanId}
-              render={(id) => k(sizes.find((p) => p.id === id)?.size ?? 0)}
-              cols="grid-cols-3 sm:grid-cols-6"
-            />
-          </Card>
-
-          <Card title={`${MODEL_LABEL[model]} rules`}>
-            <ul className="grid gap-3 text-[14px] text-ink-2">
-              {rule.features.map((t) => (
-                <li key={t} className="flex items-start gap-2.5">
-                  <Check size={16} className="mt-0.5 shrink-0 text-success" /> {t}
-                </li>
+          <Step n={1} title="Choose your program" sub="Select the evaluation model that fits your trading style.">
+            <div role="radiogroup" aria-label="Program" className={cx("grid gap-3", models.length > 3 ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-2 sm:grid-cols-3")}>
+              {models.map((m) => (
+                <OptionCard
+                  key={m}
+                  selected={model === m}
+                  onSelect={() => {
+                    setModel(m);
+                    setPlanId("");
+                  }}
+                >
+                  <span className="text-[16px] font-bold text-ink">{MODEL_LABEL[m]}</span>
+                  <span className="text-[12.5px] text-muted">from {money(fromPrice(m))}</span>
+                </OptionCard>
               ))}
-            </ul>
-            <p className="mt-5 text-[13px] text-muted">
-              Full details: <a href="/rules" target="_blank" className="font-medium text-brand-strong hover:underline">Trading rules</a>
-            </p>
-          </Card>
+            </div>
+          </Step>
+
+          <Step n={2} title="Select account size" sub="Simulated capital for your evaluation account.">
+            <div role="radiogroup" aria-label="Account size" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {sizes.map((p) => (
+                <OptionCard key={p.id} selected={plan?.id === p.id} onSelect={() => setPlanId(p.id)}>
+                  <span className="text-[20px] font-bold tracking-tight text-ink">{k(p.size)}</span>
+                  <span className="flex items-baseline gap-1.5 text-[13px]">
+                    {coupon?.pct ? <span className="text-muted line-through">{money(p.price)}</span> : null}
+                    <span className="font-semibold text-brand-strong">{money(discounted(p.price))}</span>
+                  </span>
+                </OptionCard>
+              ))}
+            </div>
+          </Step>
+
+          <Step n={3} title="Trading platform" sub="Your account credentials will be issued for this platform.">
+            <div role="radiogroup" aria-label="Platform" className="grid grid-cols-3 gap-3">
+              {PLATFORMS.map((p) => (
+                <OptionCard key={p} selected={platform === p} onSelect={() => setPlatform(p)} center>
+                  <span className="text-[15px] font-bold text-ink">{p}</span>
+                </OptionCard>
+              ))}
+            </div>
+          </Step>
+
+          <Step n={4} title="Payment method" sub="All payments are processed securely.">
+            {methods.length ? (
+              <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Payment method">
+                {methods.map((m) => (
+                  <OptionCard key={m.key} selected={payMethod === m.key} onSelect={() => setMethod(m.key)}>
+                    <span className="pr-5 text-[14px] font-semibold text-ink">{m.label}</span>
+                    <PaymentIcons icons={m.icons} />
+                  </OptionCard>
+                ))}
+              </div>
+            ) : (
+              <FormMessage tone="error">No payment method is available yet. Please contact support.</FormMessage>
+            )}
+          </Step>
+
+          <Step n={5} title="Add-ons" sub={isFlex ? undefined : "Optional upgrades for your evaluation account."} badge={isFlex ? undefined : "Optional"}>
+            {isFlex ? (
+              <p className="rounded-tile border border-line bg-surface-2 p-4 text-[13.5px] leading-relaxed text-ink-2">
+                Pay <strong className="text-ink">{money(flex?.upfront ?? 0)}</strong> now to start. Pass the evaluation, then pay the remaining{" "}
+                <strong className="text-ink">{money(flex?.activationFee ?? 0)}</strong> to receive your funded account. Overnight and weekend holding are included.
+              </p>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2">
+                <AddonCard
+                  checked={weekend}
+                  onChange={setWeekend}
+                  title="Weekend Holding"
+                  pct={WEEKEND_HOLDING_ADDON_PERCENT}
+                  fee={plan && weekend ? money(weekendFee) : ""}
+                  text="Keep positions open across the weekend through Friday market close without compliance review."
+                />
+                <AddonCard
+                  checked={overnight}
+                  onChange={setOvernight}
+                  title="Overnight Holding"
+                  pct={OVERNIGHT_HOLDING_ADDON_PERCENT}
+                  fee={plan && overnight ? money(overnightFee) : ""}
+                  text="Hold swing trades through the daily 00:00 UTC rollover without mandatory end-of-day closure."
+                />
+              </div>
+            )}
+          </Step>
         </div>
 
-        <Card className="h-fit xl:sticky xl:top-24">
-          <p className="text-[13px] font-semibold uppercase tracking-wide text-muted">Your challenge</p>
-          <p className="mt-2 text-[24px] font-bold text-ink">
-            {MODEL_LABEL[model]} · {plan ? k(plan.size) : "—"}
-          </p>
-
-          <h3 className="mb-2.5 mt-6 text-[13px] font-medium text-ink-2">Platform</h3>
-          <Segmented label="Platform" options={[...PLATFORMS]} value={platform} onChange={setPlatform} />
-
-          <h3 className="mb-2.5 mt-6 text-[13px] font-medium text-ink-2">Payment method</h3>
-          {methods.length ? (
-            <div className="grid gap-2" role="radiogroup" aria-label="Payment method">
-              {methods.map((m) => (
-                <label key={m.key} className={cx("flex cursor-pointer items-start gap-3 rounded-tile border px-4 py-3 text-[14px]", payMethod === m.key ? "border-brand-strong bg-brand-soft" : "border-line")}>
-                  <input type="radio" name="method" checked={payMethod === m.key} onChange={() => setMethod(m.key)} className="mt-1 accent-[var(--brand-strong)]" />
-                  <span className="grid min-w-0 gap-2">
-                    {m.label}
-                    <PaymentIcons icons={m.icons} />
-                  </span>
-                </label>
-              ))}
-            </div>
-          ) : (
-            <FormMessage tone="error">No payment method is available yet. Please contact support.</FormMessage>
-          )}
-
-          {/* ── Customizations & Add-Ons ── */}
-          {isFlex ? (
-            <p className="mt-6 rounded-tile bg-brand-soft p-3 text-[12.5px] leading-relaxed text-ink-2">
-              Pay <strong className="text-ink">{money(flex?.upfront ?? 0)}</strong> now to start. Pass the evaluation, then pay the remaining{" "}
-              <strong className="text-ink">{money(flex?.activationFee ?? 0)}</strong> to receive your funded account. Overnight and weekend holding are included.
+        {/* ── Order summary ── */}
+        <aside className="h-fit overflow-hidden rounded-card border border-line bg-surface xl:sticky xl:top-24">
+          <div className="border-b border-line bg-surface-2 px-6 py-5">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted">Order summary</p>
+            <p className="mt-1.5 text-[24px] font-bold tracking-tight text-ink">
+              {plan ? k(plan.size) : "—"} <span className="text-brand-strong">{MODEL_LABEL[model]}</span>
             </p>
-          ) : (
-          <div className="mt-6 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[13px] font-semibold uppercase tracking-wider text-muted">
-                Customizations &amp; Add-Ons
-              </h3>
-              <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[11px] font-bold text-brand-strong">
-                Optional
-              </span>
+            <p className="mt-0.5 text-[13px] text-muted">Simulated evaluation account · {platform}</p>
+          </div>
+
+          <div className="space-y-5 px-6 py-6">
+            <div className="space-y-2.5 text-[13.5px]">
+              <KV k="Program" v={MODEL_LABEL[model]} />
+              <KV k="Account size" v={plan ? k(plan.size) : "—"} />
+              <KV k="Platform" v={platform} />
+              {flex ? (
+                <>
+                  <KV k="Real price" v={money(flex.real)} />
+                  {!!coupon?.pct && <KV k={`Discount (${coupon.code})`} v={<span className="font-semibold text-success">-{money(flex.discount)}</span>} />}
+                  <KV k="Due after passing" v={money(flex.activationFee)} />
+                </>
+              ) : (
+                <>
+                  <KV k="Challenge fee" v={money(plan?.price ?? 0)} />
+                  {weekendOn && <KV k={`Weekend holding (+${WEEKEND_HOLDING_ADDON_PERCENT}%)`} v={money(weekendFee)} />}
+                  {overnightOn && <KV k={`Overnight holding (+${OVERNIGHT_HOLDING_ADDON_PERCENT}%)`} v={money(overnightFee)} />}
+                  {!!coupon?.pct && <KV k={`Discount (${coupon.code})`} v={<span className="font-semibold text-success">-{money(base - total)}</span>} />}
+                </>
+              )}
             </div>
 
-            {/* Weekend Holding Add-on */}
-            <label
-              className={cx(
-                "flex cursor-pointer items-start gap-3 rounded-tile border p-3 transition-all",
-                weekend
-                  ? "border-brand-strong bg-brand-soft shadow-xs"
-                  : "border-line bg-surface hover:border-line/80"
-              )}
-            >
-              <input
-                type="checkbox"
-                checked={weekend}
-                onChange={(e) => setWeekend(e.target.checked)}
-                className="mt-0.5 size-4 accent-[var(--brand-strong)] rounded shrink-0 cursor-pointer"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold text-[13px] text-ink">Weekend Holding</span>
-                  <span className="shrink-0 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-strong border border-brand/20">
-                    +{WEEKEND_HOLDING_ADDON_PERCENT}% {plan && weekend ? `(${money(weekendFee)})` : ""}
-                  </span>
-                </div>
-                <p className="mt-0.5 text-[12px] leading-relaxed text-muted">
-                  Keep positions open across the weekend through Friday market close without compliance review.
-                </p>
-              </div>
-            </label>
-
-            {/* Overnight Holding Add-on */}
-            <label
-              className={cx(
-                "flex cursor-pointer items-start gap-3 rounded-tile border p-3 transition-all",
-                overnight
-                  ? "border-brand-strong bg-brand-soft shadow-xs"
-                  : "border-line bg-surface hover:border-line/80"
-              )}
-            >
-              <input
-                type="checkbox"
-                checked={overnight}
-                onChange={(e) => setOvernight(e.target.checked)}
-                className="mt-0.5 size-4 accent-[var(--brand-strong)] rounded shrink-0 cursor-pointer"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold text-[13px] text-ink">Overnight Holding</span>
-                  <span className="shrink-0 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-bold text-brand-strong border border-brand/20">
-                    +{OVERNIGHT_HOLDING_ADDON_PERCENT}% {plan && overnight ? `(${money(overnightFee)})` : ""}
-                  </span>
-                </div>
-                <p className="mt-0.5 text-[12px] leading-relaxed text-muted">
-                  Hold swing trades through the daily 00:00 UTC rollover without mandatory end-of-day closure.
-                </p>
-              </div>
-            </label>
-          </div>
-          )}
-
-          <div className="mt-5">
-            <Field label="Coupon or referral code" hint={coupon?.pct ? `${coupon.code}: ${coupon.pct}% off` : couponMsg}>
+            <Field label="Coupon or referral code" hint={coupon?.pct ? `${coupon.code} applied: ${coupon.pct}% off` : couponMsg}>
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <TagIcon size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-                  <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Enter code" className={cx(inputCls, "pl-9 uppercase placeholder:normal-case")} />
+                  <input
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") applyCoupon();
+                    }}
+                    placeholder="Enter code"
+                    className={cx(inputCls, "pl-9 uppercase placeholder:normal-case")}
+                  />
                 </div>
                 <button type="button" onClick={applyCoupon} className={btnSecondary}>
                   Apply
                 </button>
               </div>
             </Field>
-          </div>
 
-          {flex ? (
-          <div className="mt-6 space-y-2.5 rounded-tile bg-surface-2 p-4">
-            <KV k="Real price" v={money(flex.real)} />
-            {!!coupon?.pct && <KV k={`Discount (${coupon.code})`} v={<span className="text-success">-{money(flex.discount)}</span>} />}
-            <KV k="Due after passing" v={money(flex.activationFee)} />
-            <div className="border-t border-line pt-2.5">
-              <KV k={<span className="font-semibold text-ink">Pay now</span>} v={<span className="text-[20px] font-bold text-ink">{money(shownTotal)}</span>} />
+            <div className="flex items-end justify-between border-t border-dashed border-line pt-5">
+              <span className="text-[14px] font-semibold text-ink">{flex ? "Pay now" : "Total"}</span>
+              <span className="text-right">
+                <span className="block text-[30px] font-bold leading-none tracking-tight text-ink">{money(shownTotal)}</span>
+                <span className="mt-1 block text-[11.5px] text-muted">One-time fee · USD</span>
+              </span>
             </div>
+
+            <label className="flex items-start gap-2.5 text-[13px] leading-relaxed text-ink-2">
+              <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[var(--brand-strong)]" />
+              <span>
+                I agree to the <a href="/terms" target="_blank" className="font-medium text-brand-strong hover:underline">Terms of Service</a> and the{" "}
+                <a href="/rules" target="_blank" className="font-medium text-brand-strong hover:underline">trading rules</a>.
+              </span>
+            </label>
+
+            {err && <FormMessage tone={confirmAmount ? "info" : "error"}>{err}</FormMessage>}
+
+            <button type="button" disabled={!agree || !plan || !payMethod || busy} onClick={buy} className={cx(btnPrimary, "h-12 w-full text-[15px] font-semibold")}>
+              {busy ? (
+                "Creating order…"
+              ) : confirmAmount ? (
+                `Confirm · ${money(confirmAmount)}`
+              ) : (
+                <>
+                  Continue to payment <ArrowRight size={16} />
+                </>
+              )}
+            </button>
+
+            <ul className="grid grid-cols-3 gap-2 border-t border-line pt-4 text-center text-[11.5px] text-muted">
+              <li className="flex flex-col items-center gap-1.5">
+                <Lock size={15} className="text-brand-strong" /> Secure checkout
+              </li>
+              <li className="flex flex-col items-center gap-1.5">
+                <Zap size={15} className="text-brand-strong" /> Fast account setup
+              </li>
+              <li className="flex flex-col items-center gap-1.5">
+                <Headphones size={15} className="text-brand-strong" /> 24/7 support
+              </li>
+            </ul>
           </div>
-          ) : (
-          <div className="mt-6 space-y-2.5 rounded-tile bg-surface-2 p-4">
-            <KV k="Challenge fee" v={money(plan?.price ?? 0)} />
-            {weekend && <KV k={`Weekend holding (+${WEEKEND_HOLDING_ADDON_PERCENT}%)`} v={money(weekendFee)} />}
-            {overnight && <KV k={`Overnight holding (+${OVERNIGHT_HOLDING_ADDON_PERCENT}%)`} v={money(overnightFee)} />}
-            {!!coupon?.pct && <KV k={`Discount (${coupon.code})`} v={<span className="text-success">-{money(base - total)}</span>} />}
-            <div className="border-t border-line pt-2.5">
-              <KV k={<span className="font-semibold text-ink">Total</span>} v={<span className="text-[20px] font-bold text-ink">{money(shownTotal)}</span>} />
-            </div>
-          </div>
-          )}
-
-          <label className="mt-5 flex items-start gap-2.5 text-[13px] text-ink-2">
-            <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 size-4 accent-[var(--brand-strong)]" />
-            <span>
-              I agree to the <a href="/terms" target="_blank" className="underline">Terms of Service</a> and the{" "}
-              <a href="/rules" target="_blank" className="underline">trading rules</a>.
-            </span>
-          </label>
-
-          {err && <div className="mt-4"><FormMessage tone={confirmAmount ? "info" : "error"}>{err}</FormMessage></div>}
-
-          <button type="button" disabled={!agree || !plan || !payMethod || busy} onClick={buy} className={cx(btnPrimary, "mt-5 w-full")}>
-            {busy ? "Creating order…" : confirmAmount ? `Confirm · ${money(confirmAmount)}` : `Continue to payment · ${money(total)}`}
-          </button>
-          <p className="mt-3 flex items-center justify-center gap-1.5 text-[12px] text-muted">
-            <ShieldCheck size={14} /> Secure checkout
-          </p>
-        </Card>
+        </aside>
       </div>
     </div>
+  );
+}
+
+function Step({ n, title, sub, badge, children }: { n: number; title: string; sub?: string; badge?: string; children: ReactNode }) {
+  return (
+    <section className="min-w-0 rounded-card border border-line bg-surface p-5 sm:p-6">
+      <div className="mb-4 flex items-start gap-3.5">
+        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-[13px] font-bold text-brand-ink">{n}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h2 className="text-[16px] font-semibold text-ink">{title}</h2>
+            {badge && <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-semibold text-brand-strong">{badge}</span>}
+          </div>
+          {sub && <p className="mt-0.5 text-[13px] text-muted">{sub}</p>}
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function OptionCard({ selected, onSelect, center, children }: { selected: boolean; onSelect: () => void; center?: boolean; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onSelect}
+      className={cx(
+        "relative flex min-h-[4.25rem] flex-col justify-center gap-1 rounded-tile border px-4 py-3 text-left transition",
+        center && "items-center text-center",
+        selected ? "border-brand-strong bg-brand-soft ring-1 ring-brand-strong" : "border-line bg-surface hover:border-muted"
+      )}
+    >
+      {selected && (
+        <span className="absolute right-2.5 top-2.5 grid size-4 place-items-center rounded-full bg-brand-strong text-brand-ink" aria-hidden="true">
+          <Check size={11} strokeWidth={3} />
+        </span>
+      )}
+      {children}
+    </button>
+  );
+}
+
+function AddonCard({ checked, onChange, title, pct, fee, text }: { checked: boolean; onChange: (v: boolean) => void; title: string; pct: number; fee: string; text: string }) {
+  return (
+    <label className={cx("flex cursor-pointer items-start gap-3 rounded-tile border p-4 transition", checked ? "border-brand-strong bg-brand-soft ring-1 ring-brand-strong" : "border-line bg-surface hover:border-muted")}>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[var(--brand-strong)]" />
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center justify-between gap-2">
+          <span className="text-[14px] font-semibold text-ink">{title}</span>
+          <span className="shrink-0 rounded-full border border-brand/20 bg-surface px-2 py-0.5 text-[11px] font-bold text-brand-strong">
+            +{pct}%{fee ? ` · ${fee}` : ""}
+          </span>
+        </span>
+        <span className="mt-1 block text-[12.5px] leading-relaxed text-muted">{text}</span>
+      </span>
+    </label>
   );
 }

@@ -1,10 +1,9 @@
 "use client";
 import Link from "next/link";
 import { ArrowRight, Bell, Layers, Plus } from "lucide-react";
-import { money, offers } from "@/lib/mock";
+import { money } from "@/lib/mock";
 import { api } from "@/lib/propApi";
 import { fmtDate, MODEL_LABEL, planInfo, toUiAccount, useApi } from "@/lib/portal-data";
-import HeroCarousel from "@/components/portal/HeroCarousel";
 import AccountCard from "@/components/portal/AccountCard";
 import { useSessionUser } from "@/components/portal/SessionContext";
 import { btnPrimary, btnSecondary, Card, cx, EmptyState, FormMessage, LoadState, StatTile } from "@/components/portal/ui";
@@ -55,8 +54,6 @@ export default function DashboardView({ payment }: { payment: string }) {
       </div>
 
       {ret && <FormMessage tone={ret.tone}>{ret.text}</FormMessage>}
-
-      <HeroCarousel offers={offers} />
 
       <Card
         title="Accounts Overview"

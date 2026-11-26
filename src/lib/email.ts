@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { supabase } from "./supabaseClient";
-import { BRAND_NAME } from "./brand";
+import { BRAND_NAME, SUPPORT_EMAIL } from "./brand";
 import {
   renderBrandedEmail,
   type EmailAction,
@@ -31,23 +31,18 @@ type DirectEmailPayload = BaseEmailPayload & {
 };
 
 const SMTP_CONFIG = {
-  host: process.env.HOSTINGER_SMTP_HOST || "smtp.hostinger.com",
+  host: process.env.HOSTINGER_SMTP_HOST || "smtp.resend.com",
   port: Number(process.env.HOSTINGER_SMTP_PORT || 465),
-  user: process.env.HOSTINGER_SMTP_USER || "",
+  user: process.env.HOSTINGER_SMTP_USER || "resend",
   pass: process.env.HOSTINGER_SMTP_PASS || "",
-  from: process.env.HOSTINGER_EMAIL_FROM || process.env.HOSTINGER_SMTP_USER || "",
+  from: `${BRAND_NAME} <${SUPPORT_EMAIL}>`,
 };
 
-// Resend (https://resend.com) is used whenever RESEND_API_KEY is set; SMTP is the fallback.
-// RESEND_FROM must be an address on a domain verified in Resend. Until a domain is
-// verified, Resend only delivers from onboarding@resend.dev to the Resend account's own email.
+// Resend API is used whenever RESEND_API_KEY is set; otherwise SMTP (smtp.resend.com).
 const RESEND_CONFIG = {
   apiKey: process.env.RESEND_API_KEY || "",
-  from:
-    process.env.RESEND_FROM ||
-    process.env.HOSTINGER_EMAIL_FROM ||
-    `${BRAND_NAME} <onboarding@resend.dev>`,
-  replyTo: process.env.SUPPORT_EMAIL || "",
+  from: `${BRAND_NAME} <${SUPPORT_EMAIL}>`,
+  replyTo: SUPPORT_EMAIL,
 };
 
 export const emailProvider = () => (RESEND_CONFIG.apiKey ? "resend" : "hostinger-smtp");
