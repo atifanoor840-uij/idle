@@ -6,7 +6,7 @@ import {
   createEmailVerificationToken,
   getVerificationUrl,
 } from "@/lib/emailVerification";
-import { BRAND_NAME } from "@/lib/brand";
+import { APP_URL, BRAND_NAME } from "@/lib/brand";
 import { signSession } from "@/lib/session";
 
 // Temporarily off: new traders are signed in and sent straight to the buy
@@ -116,6 +116,16 @@ export async function POST(request: Request) {
     });
 
     if (SKIP_EMAIL_VERIFICATION) {
+      // No verification step, so send a welcome email instead.
+      await sendDirectEmail({
+        toEmail: normalizedEmail,
+        userId,
+        recipientName: name,
+        subject: `Welcome to ${BRAND_NAME}`,
+        text: "Your trader account is ready. Choose a simulated account size and start your skill-based evaluation today.",
+        action: { label: "Explore Evaluations", url: `${APP_URL}/challenges` },
+      });
+
       const cookieStore = await cookies();
       cookieStore.set("prop_session", signSession(userId), {
         httpOnly: true,
